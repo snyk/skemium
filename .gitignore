@@ -1,0 +1,8 @@
+# Toolchain
+.mvn/
+
+# IDEs
+.idea/
+
+# Java
+target/
