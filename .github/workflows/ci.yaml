@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up latest LTS JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: adopt
+          cache: maven
+      - name: Build & Test
+        run: mvn -B package
