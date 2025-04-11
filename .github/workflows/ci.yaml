@@ -8,12 +8,15 @@ on:
 
 permissions:
   contents: read
+  actions: read
+  checks: write
 
 jobs:
   build_and_test:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
       - name: Set up latest LTS JDK
         uses: actions/setup-java@v4
@@ -23,3 +26,10 @@ jobs:
           cache: maven
       - name: Build & Test
         run: mvn -B package
+      - name: Test Reports
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: JUnit5 Tests
+          reporter: java-junit
+          path: target/surefire-reports/*.xml
