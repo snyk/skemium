@@ -43,7 +43,7 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
     );
 
     public PostgresTableSchemaFetcher(final Configuration config) throws RuntimeException {
-        final String binaryName = new ManifestReader().getAttribute(ManifestReader.MANIFEST_KEY_BINARY_NAME);
+        final String binaryName = ManifestReader.SINGLETON.getAttribute(ManifestReader.MANIFEST_KEY_BINARY_NAME);
 
         LOG.trace("Creating PostgresConnector-like configuration");
         connectorConfig = new PostgresConnectorConfig(config);
