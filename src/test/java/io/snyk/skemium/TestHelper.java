@@ -4,6 +4,8 @@ import io.debezium.config.Configuration;
 import io.debezium.relational.RelationalDatabaseConnectorConfig;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import java.nio.file.Path;
+
 public class TestHelper {
     public static final String POSTGRES_IMG = "postgres";
     public static final String POSTGRES_VER = "17.2";
@@ -16,6 +18,8 @@ public class TestHelper {
     public static final String DB_USER = "chinook-db-user";
     public static final String DB_PASS = "chinook-db-pass";
     public static final long DB_SHARED_MEMORY = (128 * 1024 * 1024);
+
+    public static final Path RESOURCES = Path.of("src", "test", "resources");
 
     /**
      * @return A {@link PostgreSQLContainer} already initialized with our test fixture DB.
