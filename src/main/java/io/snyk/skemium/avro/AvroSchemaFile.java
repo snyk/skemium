@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -49,10 +51,10 @@ public record AvroSchemaFile(Schema avroSchema, String identifier) {
 
     /**
      * Saves the wrapped Avro {@link Schema} to a file in the given directory.
-     *
+     * <p>
      * The file will be named {@link #filename()}.
      * An additional file with the content of {@link #checksum()} will also be created and named {@link #checksumFilename()}.
-     *
+     * <p>
      * WARNING: Any existing files with the same names will be overwritten.
      *
      * @param outputDir {@link Path} to the directory where to save the file. Directory MUST already exist and be writable.
@@ -70,7 +72,7 @@ public record AvroSchemaFile(Schema avroSchema, String identifier) {
 
         LOG.trace("Saving Avro Schema '{}' checksum: {}", identifier, checksumOutputPath);
         try (final PrintWriter out = new PrintWriter(checksumOutputPath.toString())) {
-            out.println(checksum());
+            out.print(checksum());
         }
     }
 
@@ -85,16 +87,35 @@ public record AvroSchemaFile(Schema avroSchema, String identifier) {
 
     /**
      * Loads an {@link AvroSchemaFile} from filesystem.
+     * It validates the checksum on the filesystem (sibling file) with the one of the wrapped {@link Schema}:
+     * it throws in case of mismatch.
+     * <p>
+     * If checksum file is absent, logs a warning but continues.
      *
-     * @param inputDir {@link Path} to the directory
+     * @param inputDir   {@link Path} to the directory
      * @param identifier The identifier of the schema
      * @return An {@link AvroSchemaFile}
      * @throws IOException
      */
     public static AvroSchemaFile loadFrom(final Path inputDir, final String identifier) throws IOException {
-        final Path fileInputPath = inputDir.toAbsolutePath().resolve(identifier + SCHEMA_FILENAME_EXTENSION);
-        final Schema avroSchema = new Schema.Parser().parse(fileInputPath.toFile());
+        final Path inputFilePath = inputDir.toAbsolutePath().resolve(identifier + SCHEMA_FILENAME_EXTENSION);
 
-        return new AvroSchemaFile(avroSchema, identifier);
+        LOG.trace("Loading Avro Schema '{}': {}", identifier, inputFilePath);
+        final Schema avroSchema = new Schema.Parser().parse(inputFilePath.toFile());
+        final AvroSchemaFile res = new AvroSchemaFile(avroSchema, identifier);
+
+        final Path inputFileChecksumPath = inputFilePath.resolveSibling(identifier + CHECKSUM_FILENAME_EXTENSION);
+        if (!inputFileChecksumPath.toFile().exists()) {
+            LOG.warn("Checksum file for Avro Schema '{}' not found: skipping checksum validation", identifier);
+            return res;
+        }
+
+        LOG.trace("Loading Avro Schema '{}' checksum: {}", identifier, inputFileChecksumPath);
+        final String inputFileChecksum = Files.readString(inputFileChecksumPath, StandardCharsets.UTF_8);
+        if (!res.checksum().equals(inputFileChecksum.trim())) {
+            throw new IOException(String.format("Checksum at '%s' does not match content for '%s'", inputFileChecksumPath, inputFilePath));
+        }
+
+        return res;
     }
 }
