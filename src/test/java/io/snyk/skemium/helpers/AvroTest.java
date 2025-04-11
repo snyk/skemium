@@ -14,8 +14,9 @@ class AvroTest {
 
     @Test
     void shouldDetectBackwardIncompatibleSchemaChanges() throws IOException {
-        final AvroSchemaFile curr = AvroSchemaFile.loadFrom(Path.of("src", "test", "resources", "schema_change_non_backward_compatible"), "current");
-        final AvroSchemaFile next = AvroSchemaFile.loadFrom(Path.of("src", "test", "resources", "schema_change_non_backward_compatible"), "next");
+        final Path dirPath = Path.of("src", "test", "resources", "schema_change_non_backward_compatible");
+        final AvroSchemaFile curr = AvroSchemaFile.loadFrom(dirPath, "current");
+        final AvroSchemaFile next = AvroSchemaFile.loadFrom(dirPath, "next");
 
         final List<String> compatibility = Avro.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
         assertEquals(2, compatibility.size());
@@ -28,8 +29,9 @@ class AvroTest {
 
     @Test
     void shouldDetectBackwardCompatibleSchemaChanges() throws IOException {
-        final AvroSchemaFile curr = AvroSchemaFile.loadFrom(Path.of("src", "test", "resources", "schema_change_backward_compatible"), "current");
-        final AvroSchemaFile next = AvroSchemaFile.loadFrom(Path.of("src", "test", "resources", "schema_change_backward_compatible"), "next");
+        final Path dirPath = Path.of("src", "test", "resources", "schema_change_backward_compatible");
+        final AvroSchemaFile curr = AvroSchemaFile.loadFrom(dirPath, "current");
+        final AvroSchemaFile next = AvroSchemaFile.loadFrom(dirPath, "next");
 
         final List<String> compatibility = Avro.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
         assertEquals(0, compatibility.size());

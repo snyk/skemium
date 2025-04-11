@@ -60,10 +60,12 @@ class AvroSchemaFileTest {
     @Test
     void shouldThrowIfChecksumDoesNotMatch() {
         final IOException expectedException = assertThrows(IOException.class, () -> {
-            final AvroSchemaFile employee = AvroSchemaFile.loadFrom(TestHelper.RESOURCES.resolve("schema_employee_invalid_checksum"), "chinook.public.employee");
+            AvroSchemaFile.loadFrom(TestHelper.RESOURCES.resolve("schema_employee_invalid_checksum"), "chinook.public.employee");
         });
-        
-        assertTrue(expectedException.getMessage().contains("Checksum at"));
-        assertTrue(expectedException.getMessage().contains("does not match content for"));
+
+
+        assertTrue(expectedException
+                .getMessage()
+                .matches("Checksum '(.*)/schema_employee_invalid_checksum/chinook\\.public\\.employee\\.avsc\\.sha256' ((.*)) does not match content '(.*)/schema_employee_invalid_checksum/chinook\\.public\\.employee\\.avsc' ((.*))"));
     }
 }
