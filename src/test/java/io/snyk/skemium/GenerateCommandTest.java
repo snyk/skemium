@@ -18,7 +18,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class GenerateCommandTest {
     static PostgreSQLContainer<?> POSTGRES_CONTAINER = TestHelper.initPostgresContainer();
@@ -80,7 +81,7 @@ public class GenerateCommandTest {
             final AvroSchemaFile schemaFile = AvroSchemaFile.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
             assertEquals(schemaMetaEntry.getValue(), schemaFile.checksum());
         }
-        assertEquals("328efc831fc344c7b4c30937174fd5727e270926cb54dcdde7d80a2e2b77d825", meta.checksumSHA256());
+        assertEquals("e136857dba410c5c569e651390cf419281b2c5995945d352585acad8e9f01770", meta.checksumSHA256());
 
         // ... VCS information
         assertNotNull(meta.vcsCommit());
@@ -128,7 +129,7 @@ public class GenerateCommandTest {
             final AvroSchemaFile schemaFile = AvroSchemaFile.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
             assertEquals(schemaMetaEntry.getValue(), schemaFile.checksum());
         }
-        assertEquals("5c814aff5e5e21609d33ee15bc206957da03d4cdc3991c5ac7927d1c11b71209", meta.checksumSHA256());
+        assertEquals("08fe7361d411d997d4035f327ae61e433b0593e3794edc418099921e9fff4b8d", meta.checksumSHA256());
 
         // ... VCS information
         assertNotNull(meta.vcsCommit());
@@ -183,7 +184,7 @@ public class GenerateCommandTest {
         // `generate` runs successfully
         assertEquals(1, cmdLine.execute(
                 "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", String.valueOf(POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT)+1),
+                "--port", String.valueOf(POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT) + 1),
                 "--database", TestHelper.DB_NAME,
                 "--username", TestHelper.DB_USER,
                 "--password", TestHelper.DB_PASS,

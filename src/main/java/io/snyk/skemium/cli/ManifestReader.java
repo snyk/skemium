@@ -11,6 +11,7 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.jar.Manifest;
 
 /**
@@ -70,6 +71,15 @@ public class ManifestReader implements IVersionProvider {
      */
     public String getAttribute(final String manifestAttributeKey) {
         return MANIFEST_VALUES.get(manifestAttributeKey);
+    }
+
+    /**
+     * Get keys of the attributes found in Manifest.
+     *
+     * @return {@link Set} of attribute keys.
+     */
+    public Set<String> getAttributeKeys() {
+        return MANIFEST_VALUES.keySet();
     }
 
     public String[] getVersion() {

@@ -26,7 +26,7 @@ public class Git {
      *
      * @param commit Current commit of the local Git repository
      * @param branch Current branch of the local Git repository
-     * @param tag Current tag of the local Git repository; {@code null} if none set
+     * @param tag    Current tag of the local Git repository; {@code null} if none set
      */
     public record GitInfo(String commit, String branch, String tag) {
     }
@@ -66,7 +66,7 @@ public class Git {
     public static GitInfo tryGetInfo(final Path gitRepoPath) {
         try {
             return Git.getInfo(gitRepoPath);
-        } catch(final Exception e) {
+        } catch (final Exception e) {
             LOG.warn("Unable to gather Git info", e);
             return new GitInfo(null, null, null);
         }

@@ -58,8 +58,8 @@ public class Avro {
     /**
      * Check compatibility between a "Curr(ent)" and a "Next" Avro Schema, applying the given {@link CompatibilityLevel}.
      *
-     * @param curr Current Schema, provided as a {@link AvroSchemaFile}
-     * @param next Next Schema, provided as a {@link AvroSchemaFile}
+     * @param curr               Current Schema, provided as a {@link AvroSchemaFile}
+     * @param next               Next Schema, provided as a {@link AvroSchemaFile}
      * @param compatibilityLevel Compatibility Level to apply
      * @return {@link List} of compatibility errors, if any; if empty, means the schemas are compatible.
      */

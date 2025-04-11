@@ -3,11 +3,11 @@ package io.snyk.skemium;
 import io.debezium.config.Configuration;
 import io.debezium.relational.RelationalDatabaseConnectorConfig;
 import io.debezium.relational.TableSchema;
-import io.snyk.skemium.helpers.Avro;
 import io.snyk.skemium.avro.AvroSchemaFile;
 import io.snyk.skemium.cli.ManifestReader;
 import io.snyk.skemium.db.DatabaseKind;
 import io.snyk.skemium.db.TableSchemaFetcher;
+import io.snyk.skemium.helpers.Avro;
 import io.snyk.skemium.meta.MetadataFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,7 +199,7 @@ public class GenerateCommand implements Callable<Integer> {
                 .with(RelationalDatabaseConnectorConfig.USER, username)
                 .with(RelationalDatabaseConnectorConfig.PASSWORD, password)
                 .with(RelationalDatabaseConnectorConfig.DATABASE_NAME, dbName)
-                .with(RelationalDatabaseConnectorConfig.TOPIC_PREFIX, ManifestReader.SINGLETON.getAttribute(ManifestReader.MANIFEST_KEY_BINARY_NAME))
+                .with(RelationalDatabaseConnectorConfig.TOPIC_PREFIX, "default") //< TODO Should this be configurable?
                 .build();
     }
 
