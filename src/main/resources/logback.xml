@@ -15,11 +15,14 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="org.testcontainers" level="WARN"/>
     <logger name="com.github.dockerjava" level="WARN"/>
-    <logger name="tc" level="WARN"/>
-    <logger name="org.eclipse.jgit" level="WARN"/>
-    <logger name="io.debezium" level="WARN"/>
     <logger name="io.confluent" level="WARN"/>
+    <logger name="io.debezium" level="ERROR"/>
+    <logger name="org.apache.avro" level="WARN"/>
+    <logger name="org.eclipse.jgit" level="WARN"/>
+    <logger name="org.testcontainers" level="WARN"/>
+    <logger name="tc" level="WARN"/>
+
     <logger name="io.snyk.skemium.cli" level="DEBUG"/>
+
 </configuration>
