@@ -111,9 +111,15 @@ public record AvroSchemaFile(Schema avroSchema, String identifier) {
         }
 
         LOG.trace("Loading Avro Schema '{}' checksum: {}", identifier, inputFileChecksumPath);
-        final String inputFileChecksum = Files.readString(inputFileChecksumPath, StandardCharsets.UTF_8);
-        if (!res.checksum().equals(inputFileChecksum.trim())) {
-            throw new IOException(String.format("Checksum at '%s' does not match content for '%s'", inputFileChecksumPath, inputFilePath));
+        final String inputFileChecksum = Files.readString(inputFileChecksumPath, StandardCharsets.UTF_8).trim();
+        final String checksum = res.checksum();
+        if (!inputFileChecksum.equals(checksum)) {
+            throw new IOException(String.format("Checksum '%s' (%s) does not match content '%s' (%s)",
+                    inputFileChecksumPath,
+                    inputFileChecksum,
+                    inputFilePath,
+                    checksum
+            ));
         }
 
         return res;
