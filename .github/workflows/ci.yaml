@@ -7,9 +7,10 @@ on:
     branches: [ main ]
 
 permissions:
-  contents: read
   actions: read
   checks: write
+  contents: read
+  pull-requests: read
 
 jobs:
   gitleaks:
@@ -36,6 +37,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
+          command: monitor
           args: --sarif-file-output=snyk.sarif
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
