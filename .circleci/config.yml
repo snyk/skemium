@@ -1,0 +1,33 @@
+version: 2.1
+
+orbs:
+  prodsec: snyk/prodsec-orb@1
+  snyk: snyk/snyk@2
+
+jobs:
+  security-scans:
+    resource_class: medium
+    docker:
+      - image: cimg/openjdk:23.0.2
+    steps:
+      - checkout
+      - prodsec/security_scans:
+          mode: auto
+          open-source-additional-arguments: --exclude=test
+          iac-scan: disabled
+
+workflows:
+  version: 2
+  CI (CircleCI):
+    jobs:
+      - prodsec/secrets-scan:
+          name: Scan repository for secrets
+          context:
+            - snyk-bot-slack
+          channel: alerts-data-products
+          trusted-branch: main
+
+      - security-scans:
+          name: Security Scans
+          context:
+            - appsecex_data-backend
