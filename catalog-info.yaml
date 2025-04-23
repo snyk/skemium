@@ -6,6 +6,6 @@ metadata:
     github.com/project-slug: snyk/skemium
     github.com/team-slug: snyk/data-backend
 spec:
-  type: external-tooling
   lifecycle: "-"
-  owner: os-managed
+  owner: data-backend
+  type: external-tooling
