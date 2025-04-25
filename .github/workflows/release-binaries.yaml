@@ -1,0 +1,55 @@
+name: Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release_binary:
+    name: Release Binary (${{ matrix.on }})
+    runs-on: ${{ matrix.on }}
+    strategy:
+      matrix:
+        include:
+          - on: ubuntu-24.04
+            arch: x86_64
+            os: linux
+          # TODO Enable once the repository is public
+          #- on: ubuntu-24.04-arm
+          #  arch: aarch64
+          #  os: linux
+          - on: macos-13
+            arch: x86_64
+            os: macos
+          - on: macos-15
+            arch: aarch64
+            os: macos
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: 21
+          distribution: graalvm
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: maven
+          native-image-job-reports: true
+      - name: Package Binary
+        run: mvn -B package native:compile-no-fork -DskipTests
+      - name: Capture artifact metadata
+        run: |
+          echo "proj_name=$(mvn help:evaluate -Dexpression=project.name -q -DforceStdout)" >> $GITHUB_ENV
+          echo "proj_ver=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "os_name=$(mvn help:evaluate -Dexpression=os.detected.name -q -DforceStdout)" >> $GITHUB_ENV
+          echo "os_arch=$(mvn help:evaluate -Dexpression=os.detected.arch -q -DforceStdout)" >> $GITHUB_ENV
+      - name: Release Binary
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: |
+            target/${{ env.proj_name }}-${{ env.proj_ver  }}-${{ env.os_name }}-${{ env.os_arch }}

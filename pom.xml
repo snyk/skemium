@@ -58,15 +58,17 @@
     <ver.logback>1.5.16</ver.logback>
     <ver.maven-assembly>3.7.1</ver.maven-assembly>
     <ver.maven-clean>3.4.0</ver.maven-clean>
-    <ver.maven-compiler>3.13.0</ver.maven-compiler>
-    <ver.maven-install>3.1.2</ver.maven-install>
+    <ver.maven-compiler>3.14.0</ver.maven-compiler>
+    <ver.maven-install>3.1.4</ver.maven-install>
     <ver.maven-jar>3.4.2</ver.maven-jar>
     <ver.maven-resources>3.3.1</ver.maven-resources>
     <ver.maven-surefire>3.5.3</ver.maven-surefire>
+    <ver.maven-native>0.10.6</ver.maven-native>
     <ver.picocli>4.7.6</ver.picocli>
     <ver.postgresql>42.7.5</ver.postgresql>
     <ver.slf4j>2.0.16</ver.slf4j>
     <ver.testcontainers.postgresql>1.20.6</ver.testcontainers.postgresql>
+    <ver.maven-os-plugin>1.7.1</ver.maven-os-plugin>
   </properties>
 
   <dependencyManagement>
@@ -210,20 +212,20 @@
     <testSourceDirectory>${project.basedir}/src/test/java</testSourceDirectory>
     <pluginManagement>
       <plugins>
-        <!-- TODO Add link to the docs for this -->
-        <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-clean-plugin -->
+        <!-- Clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
         <plugin>
           <artifactId>maven-clean-plugin</artifactId>
           <version>${ver.maven-clean}</version>
         </plugin>
 
-        <!-- TODO Add link to the docs for this -->
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-resources-plugin -->
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
           <version>${ver.maven-resources}</version>
         </plugin>
 
-        <!-- TODO Add link to the docs for this -->
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${ver.maven-compiler}</version>
@@ -287,7 +289,45 @@
             </execution>
           </executions>
         </plugin>
+
+        <!-- https://mvnrepository.com/artifact/org.graalvm.buildtools/native-maven-plugin -->
+        <!-- See: https://graalvm.github.io/native-build-tools/latest/end-to-end-maven-guide.html -->
+        <plugin>
+          <groupId>org.graalvm.buildtools</groupId>
+          <artifactId>native-maven-plugin</artifactId>
+          <version>${ver.maven-native}</version>
+          <extensions>true</extensions>
+          <executions>
+            <execution>
+              <id>build-native</id>
+              <phase>package</phase>
+              <goals>
+                <goal>compile-no-fork</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <!-- Uses `os-maven-plugin` below to name the binary properly -->
+            <imageName>${project.name}-${project.version}-${os.detected.name}-${os.detected.arch}</imageName>
+            <!-- See: https://docs.oracle.com/en/graalvm/jdk/21/docs/reference-manual/native-image/overview/Options/#build-options -->
+            <buildArgs>
+              <buildArg>-O3</buildArg>
+              <buildArg>-march=native</buildArg>
+              <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
+              <buildArg>-H:IncludeResources=logback.xml|META-INF/MANIFEST.MF</buildArg>
+            </buildArgs>
+            <mainClass>io.snyk.skemium.SkemiumMain</mainClass>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
+    <extensions>
+      <!-- https://mvnrepository.com/artifact/kr.motd.maven/os-maven-plugin -->
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>${ver.maven-os-plugin}</version>
+      </extension>
+    </extensions>
   </build>
 </project>

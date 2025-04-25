@@ -1,0 +1,35 @@
+name: Release Uber-JAR
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release_uberjar:
+    name: Release Uber-JAR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Set up latest LTS JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: adopt
+          cache: maven
+      - name: Package Uber-JAR
+        run: mvn -B package assembly:single -DskipTests
+      - name: Capture artifact metadata
+        run: |
+          echo "proj_name=$(mvn help:evaluate -Dexpression=project.name -q -DforceStdout)" >> $GITHUB_ENV
+          echo "proj_ver=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+      - name: Release Uber-JAR
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: |
+            target/${{ env.proj_name }}-${{ env.proj_ver  }}-jar-with-dependencies.jar
