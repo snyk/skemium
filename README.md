@@ -41,3 +41,7 @@ But I want to especially thank 2 projects for the _core_ of the functionality:
 ## License
 
 [Apache 2.0](./LICENSE)
+
+---
+
+<div style="text-align: center;">Made with 💜 by Snyk</div>

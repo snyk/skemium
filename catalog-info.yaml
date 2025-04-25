@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: skemium
+  annotations:
+    github.com/project-slug: snyk/skemium
+    github.com/team-slug: snyk/data-backend
+spec:
+  lifecycle: "-"
+  owner: data-backend
+  type: external-tooling
