@@ -27,10 +27,16 @@ Generate and Compare Avro Schema _directly_ from your Database.
 $ mvn clean package
 ```
 
-### Package into a single (fat) JAR:
+### Package Uber-JAR
 
 ```shell
 $ mvn clean package assembly:single -DskipTests
+```
+
+### Package Native Binary
+
+```shell
+$ mvn clean package native:compile-no-fork -DskipTests
 ```
 
 ## Credits
