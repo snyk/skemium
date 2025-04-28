@@ -1,3 +1,7 @@
+[![CI (GitHub Actions)](https://github.com/snyk/skemium/actions/workflows/ci.yaml/badge.svg)](https://github.com/snyk/skemium/actions/workflows/ci.yaml)
+[![Release Uber-JAR](https://github.com/snyk/skemium/actions/workflows/release-uberjar.yaml/badge.svg)](https://github.com/snyk/skemium/actions/workflows/release-uberjar.yaml)
+[![Release Binaries](https://github.com/snyk/skemium/actions/workflows/release-binaries.yaml/badge.svg)](https://github.com/snyk/skemium/actions/workflows/release-binaries.yaml)
+
 # Skemium
 
 Generate and Compare Avro Schema _directly_ from your Database.
@@ -44,4 +48,4 @@ But I want to especially thank 2 projects for the _core_ of the functionality:
 
 ---
 
-<div style="text-align: center;">Made with 💜 by Snyk</div>
+**Made with 💜 by Snyk**
