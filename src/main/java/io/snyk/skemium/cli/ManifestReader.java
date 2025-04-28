@@ -28,8 +28,8 @@ public class ManifestReader implements IVersionProvider {
     private static final Map<String, String> MANIFEST_VALUES = new HashMap<>();
     private static final String MANIFEST_RESOURCE_PATH = "META-INF/MANIFEST.MF";
 
-    public static final String MANIFEST_KEY_BINARY_NAME = "Implementation-Title";
-    public static final String MANIFEST_KEY_BINARY_VERSION = "Implementation-Version";
+    public static final String MANIFEST_KEY_PRJ_NAME = "Project-Name";
+    public static final String MANIFEST_KEY_PRJ_VER = "Project-Version";
 
     public static final ManifestReader SINGLETON = new ManifestReader();
 
@@ -83,6 +83,6 @@ public class ManifestReader implements IVersionProvider {
     }
 
     public String[] getVersion() {
-        return new String[]{getAttribute(MANIFEST_KEY_BINARY_VERSION)};
+        return new String[]{getAttribute(MANIFEST_KEY_PRJ_VER)};
     }
 }

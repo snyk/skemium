@@ -12,7 +12,6 @@ import io.debezium.relational.TableSchema;
 import io.debezium.relational.Tables;
 import io.debezium.schema.DefaultTopicNamingStrategy;
 import io.debezium.spi.topic.TopicNamingStrategy;
-import io.snyk.skemium.cli.ManifestReader;
 import io.snyk.skemium.db.TableSchemaFetcher;
 import org.postgresql.jdbc.TimestampUtils;
 import org.slf4j.Logger;
@@ -32,6 +31,8 @@ import java.util.Set;
 public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
     private static final Logger LOG = LoggerFactory.getLogger(PostgresTableSchemaFetcher.class);
 
+    private static final String CONNECTION_USAGE = "skemium-" + PostgresTableSchemaFetcher.class.getName();
+
     private final PostgresConnectorConfig connectorConfig;
     private final PostgresConnection connection;
     private final PostgresValueConverter valueConverter;
@@ -43,8 +44,6 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
     );
 
     public PostgresTableSchemaFetcher(final Configuration config) throws RuntimeException {
-        final String binaryName = ManifestReader.SINGLETON.getAttribute(ManifestReader.MANIFEST_KEY_BINARY_NAME);
-
         LOG.trace("Creating PostgresConnector-like configuration");
         connectorConfig = new PostgresConnectorConfig(config);
 
@@ -52,7 +51,7 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
         final TypeRegistry dbTypeRegistry;
         final Charset dbCharset;
         final TimestampUtils dbTimestampUtils;
-        try (final PostgresConnection tmpDbConn = new PostgresConnection(connectorConfig.getJdbcConfig(), binaryName)) {
+        try (final PostgresConnection tmpDbConn = new PostgresConnection(connectorConfig.getJdbcConfig(), CONNECTION_USAGE)) {
             dbTypeRegistry = new TypeRegistry(tmpDbConn);
             dbCharset = tmpDbConn.getDatabaseCharset();
             dbTimestampUtils = tmpDbConn.getTimestampUtils();
@@ -70,7 +69,7 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
         defaultValueConverter = new PostgresDefaultValueConverter(valueConverter, dbTimestampUtils, dbTypeRegistry);
 
         LOG.trace("Setting up database connection");
-        connection = new PostgresConnection(connectorConfig.getJdbcConfig(), psqlValueConverterBuilder, binaryName);
+        connection = new PostgresConnection(connectorConfig.getJdbcConfig(), psqlValueConverterBuilder, CONNECTION_USAGE);
     }
 
     @Override

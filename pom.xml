@@ -45,6 +45,7 @@
   </repositories>
 
   <properties>
+    <const.mainClass>io.snyk.skemium.SkemiumMain</const.mainClass>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <ver.avro>1.12.0</ver.avro>
@@ -230,6 +231,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${ver.maven-compiler}</version>
           <configuration>
+            <release>${maven.compiler.release}</release>
             <annotationProcessorPaths>
               <path>
                 <groupId>info.picocli</groupId>
@@ -254,6 +256,27 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>${ver.maven-jar}</version>
+          <configuration>
+            <!--
+              NOTE: Keep this `archive` config in sync with the one used by the `maven-assembly-plugin`.
+              The manifest created by this is used by `native-maven-plugin`.
+            -->
+            <archive>
+              <index>true</index>
+              <manifest>
+                <addDefaultEntries>true</addDefaultEntries>
+                <addClasspath>true</addClasspath>
+                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                <addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
+                <mainClass>${const.mainClass}</mainClass>
+              </manifest>
+              <manifestEntries>
+                <Project-Name>${project.name}</Project-Name>
+                <Project-Version>${project.version}</Project-Version>
+                <Project-URL>${project.url}</Project-URL>
+              </manifestEntries>
+            </archive>
+          </configuration>
         </plugin>
 
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-assembly-plugin -->
@@ -265,6 +288,10 @@
             <descriptorRefs>
               <descriptorRef>jar-with-dependencies</descriptorRef>
             </descriptorRefs>
+            <!--
+              NOTE: Keep this `archive` config in sync with the one used by the `maven-jar-plugin`.
+              The manifest created by this is used by the generated `jar-with-dependencies`.
+            -->
             <archive>
               <index>true</index>
               <manifest>
@@ -272,10 +299,12 @@
                 <addClasspath>true</addClasspath>
                 <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                 <addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
-                <mainClass>io.snyk.skemium.SkemiumMain</mainClass>
+                <mainClass>${const.mainClass}</mainClass>
               </manifest>
               <manifestEntries>
-                <!-- TODO Add more? -->
+                <Project-Name>${project.name}</Project-Name>
+                <Project-Version>${project.version}</Project-Version>
+                <Project-URL>${project.url}</Project-URL>
               </manifestEntries>
             </archive>
           </configuration>
@@ -316,7 +345,7 @@
               <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
               <buildArg>-H:IncludeResources=logback.xml|META-INF/MANIFEST.MF</buildArg>
             </buildArgs>
-            <mainClass>io.snyk.skemium.SkemiumMain</mainClass>
+            <mainClass>${const.mainClass}</mainClass>
           </configuration>
         </plugin>
       </plugins>

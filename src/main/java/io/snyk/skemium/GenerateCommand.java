@@ -216,7 +216,7 @@ public class GenerateCommand implements Callable<Integer> {
 
     private static Path defaultOutputDir() {
         return Path.of(String.format("%s-%s",
-                ManifestReader.SINGLETON.getAttribute(ManifestReader.MANIFEST_KEY_BINARY_NAME),
+                ManifestReader.SINGLETON.getAttribute(ManifestReader.MANIFEST_KEY_PRJ_NAME),
                 outputDirDateFormatter.format(LocalDateTime.now()))
         );
     }

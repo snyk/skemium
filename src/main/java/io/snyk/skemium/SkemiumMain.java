@@ -34,7 +34,7 @@ public class SkemiumMain {
 
     public static void main(String[] args) throws IOException {
         int exitCode = new CommandLine(new SkemiumMain())
-                .setCommandName(ManifestReader.SINGLETON.getAttribute(ManifestReader.MANIFEST_KEY_BINARY_NAME))
+                .setCommandName(ManifestReader.SINGLETON.getAttribute(ManifestReader.MANIFEST_KEY_PRJ_NAME))
                 .setUsageHelpLongOptionsMaxWidth(30)
                 .setUsageHelpAutoWidth(true)
                 .setCaseInsensitiveEnumValuesAllowed(true)
