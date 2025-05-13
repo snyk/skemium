@@ -23,6 +23,6 @@
     <logger name="org.testcontainers" level="WARN"/>
     <logger name="tc" level="WARN"/>
 
-    <logger name="io.snyk.skemium.cli" level="DEBUG"/>
+    <logger name="io.snyk.skemium" level="DEBUG"/>
 
 </configuration>

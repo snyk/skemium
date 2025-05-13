@@ -36,7 +36,7 @@ public class ManifestReader implements IVersionProvider {
     private synchronized static void initManifestValues() {
         // Only initialize this map once
         if (MANIFEST_VALUES.isEmpty()) {
-            LOG.debug("Reading internal Manifest ({})", MANIFEST_RESOURCE_PATH);
+            LOG.trace("Reading internal Manifest ({})", MANIFEST_RESOURCE_PATH);
             try {
                 final Enumeration<URL> resources = CommandLine.class.getClassLoader().getResources(MANIFEST_RESOURCE_PATH);
                 while (resources.hasMoreElements()) {
