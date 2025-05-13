@@ -5,12 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Spec;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.concurrent.Callable;
 
 @Command(
         name = "compare",
@@ -24,11 +26,11 @@ import java.nio.file.Path;
         parameterListHeading = "%nParameters:%n",
         optionListHeading = "%nOptions:%n"
 )
-public class CompareCommand implements Runnable {
+public class CompareCommand implements Callable<Integer> {
     private static final Logger LOG = LoggerFactory.getLogger(CompareCommand.class);
 
     @Spec
-    CommandLine.Model.CommandSpec spec;
+    CommandSpec spec;
 
     @Option(
             names = {"-c", "--compatibility"},
@@ -55,6 +57,35 @@ public class CompareCommand implements Runnable {
             description = "Directory with the NEXT Database table schemas"
     )
     Path nextSchemasDir;
+
+    @Override
+    public Integer call() {
+        validate();
+        logInput();
+
+        /* TODO pseudo-logic
+        *    1. READ LIST of AVSCs in CURRENT and NEXT
+        *    2. FOR each AVSC in CURRENT:
+        *      2a. Apply Avro.checkCompatibility between CURR.AVSC and NEXT.AVSC
+        *      2b. Accumulate any string (error) reported, grouped by AVSC, in RESULTS
+        *      Q1: WHAT do we do if NEXT.AVSC doesn't exist? (i.e. a table was removed)
+        *        A1: Log error and suggest they need to update CURR schema
+        *    3. IF RESULTS.isEmpty()
+        *      3a. EXIT with 0
+        *      3b. ELSE log errors and EXIT with 1
+        *
+        * TODO Questions
+        *  Q2: WHAT do we do for AVSC only present in NEXT? (i.e. a new table)
+        *    A2: Add a "CI" mode, where it's INFO normally, but ERROR during CI
+        *  Q3: SHOULD it support "schema" and "table" filtering, like the `generate` command?
+        *    A3: NOPE. The filtering is left at `generate`, and this command should compare "as-is"
+        *
+        * TODO additional checks
+        * */
+
+
+        return 0;
+    }
 
     private void validate() throws CommandLine.ParameterException {
         final File currSchemasDirFile = currSchemasDir.toFile();
@@ -85,11 +116,5 @@ public class CompareCommand implements Runnable {
         LOG.debug("  CURRENT Schema Directory: {} (exists: {})", currSchemasDir.toAbsolutePath().normalize(), currSchemasDir.toFile().exists());
         LOG.debug("  NEXT    Schema Directory: {} (exists: {})", nextSchemasDir.toAbsolutePath().normalize(), nextSchemasDir.toFile().exists());
         LOG.debug("  Compatibility Level: {}", compatibilityLevel);
-    }
-
-    @Override
-    public void run() {
-        validate();
-        logInput();
     }
 }

@@ -18,8 +18,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GenerateCommandTest {
     static PostgreSQLContainer<?> POSTGRES_CONTAINER = TestHelper.initPostgresContainer();
@@ -81,7 +80,7 @@ public class GenerateCommandTest {
             final AvroSchemaFile schemaFile = AvroSchemaFile.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
             assertEquals(schemaMetaEntry.getValue(), schemaFile.checksum());
         }
-        assertEquals("e136857dba410c5c569e651390cf419281b2c5995945d352585acad8e9f01770", meta.checksumSHA256());
+        assertEquals("30a7b807f997e2fc6a1ba6bb0ba752c66ec7c38b722f6ddd5b5ae5c165b0fc3b", meta.checksumSHA256());
 
         // ... VCS information
         assertNotNull(meta.vcsCommit());
@@ -129,11 +128,65 @@ public class GenerateCommandTest {
             final AvroSchemaFile schemaFile = AvroSchemaFile.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
             assertEquals(schemaMetaEntry.getValue(), schemaFile.checksum());
         }
-        assertEquals("08fe7361d411d997d4035f327ae61e433b0593e3794edc418099921e9fff4b8d", meta.checksumSHA256());
+        assertEquals("83579ef96a2a1340cbb876ce39e44195ff756f34f92eff113608e1084a5f99d1", meta.checksumSHA256());
 
         // ... VCS information
         assertNotNull(meta.vcsCommit());
         assertNotNull(meta.vcsBranch());
+    }
+
+    @Test
+    void shouldGenerateSchemaForSubsetOfTablesAndColumns() throws IOException {
+        // TODO Map logger to stdout/err, if possible
+        final CommandLine cmdLine = new CommandLine(new GenerateCommand())
+                .setOut(new PrintWriter(new StringWriter()))
+                .setErr(new PrintWriter(new StringWriter()));
+
+        // `generate` runs successfully
+        assertEquals(0, cmdLine.execute(
+                "--hostname", POSTGRES_CONTAINER.getHost(),
+                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
+                "--database", TestHelper.DB_NAME,
+                "--username", TestHelper.DB_USER,
+                "--password", TestHelper.DB_PASS,
+                "--table", "artist",
+                "-t", "album",
+                "-x", "public.artist.artist_id",
+                "--exclude-column", "public.album.album_id,public.album.artist_id",
+                TEMP_DIR.toAbsolutePath().toString()
+        ));
+
+        // Metadata file contains...
+        final MetadataFile meta = MetadataFile.loadFrom(TEMP_DIR);
+
+        // ... command line arguments
+        assertEquals(List.of(
+                "--hostname", POSTGRES_CONTAINER.getHost(),
+                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
+                "--database", TestHelper.DB_NAME,
+                "--username", TestHelper.DB_USER,
+                "--password", TestHelper.DB_PASS,
+                "--table", "artist",
+                "-t", "album",
+                "-x", "public.artist.artist_id",
+                "--exclude-column", "public.album.album_id,public.album.artist_id",
+                TEMP_DIR.toAbsolutePath().toString()), meta.arguments());
+
+        // ... count of schemas
+        assertEquals(2, meta.schemaCount());
+
+        // Confirm `artist` schema contains only `name` field
+        final AvroSchemaFile artistSchemaFile = AvroSchemaFile.loadFrom(TEMP_DIR, "chinook.public.artist");
+        assertNull(artistSchemaFile.avroSchema().getField("artist_id"));
+        assertEquals(1, artistSchemaFile.avroSchema().getFields().size());
+        assertEquals("union[null, string]", artistSchemaFile.avroSchema().getField("name").schema().getName());
+
+        // Confirm `album` schema contains only the `title` field
+        final AvroSchemaFile albumSchemaFile = AvroSchemaFile.loadFrom(TEMP_DIR, "chinook.public.album");
+        assertNull(albumSchemaFile.avroSchema().getField("album_id"));
+        assertNull(albumSchemaFile.avroSchema().getField("artist_id"));
+        assertEquals(1, albumSchemaFile.avroSchema().getFields().size());
+        assertEquals("string", albumSchemaFile.avroSchema().getField("title").schema().getName());
     }
 
     @Test

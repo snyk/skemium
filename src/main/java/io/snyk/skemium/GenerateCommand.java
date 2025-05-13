@@ -103,6 +103,14 @@ public class GenerateCommand implements Callable<Integer> {
     Set<String> dbTables;
 
     @Option(
+            names = {"-x", "--exclude-column"},
+            defaultValue = "${env:DB_EXCLUDED_COLUMN}",
+            description = "Database table column(s) to exclude (fmt: DB_SCHEMA.DB_TABLE.DB_COLUMN - env: DB_EXCLUDED_COLUMN - optional)",
+            split = ","
+    )
+    Set<String> dbExcludedColumns;
+
+    @Option(
             names = {"--kind"},
             defaultValue = "${env:DB_KIND}",
             showDefaultValue = CommandLine.Help.Visibility.ALWAYS,
@@ -125,14 +133,14 @@ public class GenerateCommand implements Callable<Integer> {
         logInput();
 
         try (final TableSchemaFetcher schemaFetcher = kind.fetcher(createConfiguration())) {
-            final List<TableSchema> tableSchemas = schemaFetcher.fetch(dbName, dbSchemas, dbTables);
+            final List<TableSchema> tableSchemas = schemaFetcher.fetch(dbName, dbSchemas, dbTables, dbExcludedColumns);
 
             LOG.info("Will convert {} Table Schemas to Avro", tableSchemas.size());
             for (final TableSchema ts : tableSchemas) {
                 LOG.info("  {}", ts.id());
             }
 
-            // Ensure the output directory either is ready or can be creted
+            // Ensure the output directory either is ready or can be created
             if (!outputDir.toFile().exists() && !outputDir.toFile().mkdirs()) {
                 throw new RuntimeException("Could not create output directory: " + outputDir);
             }
@@ -199,7 +207,7 @@ public class GenerateCommand implements Callable<Integer> {
                 .with(RelationalDatabaseConnectorConfig.USER, username)
                 .with(RelationalDatabaseConnectorConfig.PASSWORD, password)
                 .with(RelationalDatabaseConnectorConfig.DATABASE_NAME, dbName)
-                .with(RelationalDatabaseConnectorConfig.TOPIC_PREFIX, "default") //< TODO Should this be configurable?
+                .with(RelationalDatabaseConnectorConfig.TOPIC_PREFIX, "unused.topic.prefix") //< NOTE: Required but unused field
                 .build();
     }
 
