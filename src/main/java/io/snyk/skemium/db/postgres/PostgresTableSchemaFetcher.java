@@ -6,12 +6,10 @@ import io.debezium.connector.postgresql.PostgresValueConverter;
 import io.debezium.connector.postgresql.TypeRegistry;
 import io.debezium.connector.postgresql.connection.PostgresConnection;
 import io.debezium.connector.postgresql.connection.PostgresDefaultValueConverter;
-import io.debezium.relational.ColumnFilterMode;
 import io.debezium.relational.TableId;
 import io.debezium.relational.TableSchema;
 import io.debezium.relational.Tables;
-import io.debezium.schema.DefaultTopicNamingStrategy;
-import io.debezium.spi.topic.TopicNamingStrategy;
+import io.snyk.skemium.db.CatalogSchemaAndTableTopicNamingStrategy;
 import io.snyk.skemium.db.TableSchemaFetcher;
 import org.postgresql.jdbc.TimestampUtils;
 import org.slf4j.Logger;
@@ -23,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static io.debezium.relational.RelationalDatabaseConnectorConfig.COLUMN_EXCLUDE_LIST;
+
 /**
  * The {@link TableSchemaFetcher} for PostgreSQL.
  * <p>
@@ -33,7 +33,7 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
 
     private static final String CONNECTION_USAGE = "skemium-" + PostgresTableSchemaFetcher.class.getName();
 
-    private final PostgresConnectorConfig connectorConfig;
+    private final Configuration configuration;
     private final PostgresConnection connection;
     private final PostgresValueConverter valueConverter;
     private final PostgresDefaultValueConverter defaultValueConverter;
@@ -44,8 +44,10 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
     );
 
     public PostgresTableSchemaFetcher(final Configuration config) throws RuntimeException {
+        this.configuration = config;
+
         LOG.trace("Creating PostgresConnector-like configuration");
-        connectorConfig = new PostgresConnectorConfig(config);
+        final PostgresConnectorConfig connectorConfig = new PostgresConnectorConfig(configuration);
 
         LOG.trace("Determining database type registry, charset and more");
         final TypeRegistry dbTypeRegistry;
@@ -75,7 +77,8 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
     @Override
     public List<TableSchema> fetch(final String database,
                                    @Nullable final Set<String> includedSchemas,
-                                   @Nullable final Set<String> includedTables) throws Exception {
+                                   @Nullable final Set<String> includedTables,
+                                   @Nullable final Set<String> excludedColumns) throws Exception {
         final List<TableSchema> result = new ArrayList<>();
 
         LOG.trace("Fetching Schemas");
@@ -93,6 +96,12 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
         LOG.debug("Found {} Schemas: ", foundSchemas.size());
         foundSchemas.forEach(s -> LOG.trace("  {}", s));
 
+        // At this stage we only filter:
+        //
+        //   1. Schemas
+        //   2. Tables
+        //
+        // Filtering of Columns happens later, by optionally injecting configuration (i.e. `COLUMN_EXCLUDE_LIST`).
         final List<TableId> allFoundTables = new ArrayList<>();
         for (final String foundSchema : foundSchemas) {
             LOG.trace("Fetching Tables from Schema: {}", foundSchema);
@@ -108,8 +117,7 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
                         }
                         return true;
                     }),
-                    // TODO Add here Column Filter
-                    Tables.ColumnNameFilterFactory.createExcludeListFilter("", ColumnFilterMode.SCHEMA),
+                    null, //< No Column filtering during this step
                     true
             );
             LOG.debug("Found {} Tables in Schema {}", foundTables.size(), foundSchema);
@@ -118,10 +126,15 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
         }
         LOG.debug("Found {} Tables in total: ", allFoundTables.size());
 
+        // Filter-out Columns, if requested
+        final PostgresConnectorConfig connectorConfig = excludedColumns != null
+                ? new PostgresConnectorConfig(configuration.edit().with(COLUMN_EXCLUDE_LIST, String.join(",", excludedColumns)).build())
+                : new PostgresConnectorConfig(configuration);
+
         try (final PostgresSchemaRefreshable postgresSchema = new PostgresSchemaRefreshable(
                 connectorConfig,
                 defaultValueConverter,
-                (TopicNamingStrategy) DefaultTopicNamingStrategy.create(connectorConfig),
+                CatalogSchemaAndTableTopicNamingStrategy.create(connectorConfig),
                 valueConverter)) {
             postgresSchema.refresh(connection, true);
 

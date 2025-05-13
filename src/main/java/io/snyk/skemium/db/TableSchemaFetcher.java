@@ -16,13 +16,16 @@ public interface TableSchemaFetcher extends AutoCloseable {
      * <p>
      * TODO Add support to filter columns, similarly to schemas and tables.
      *
-     * @param database Database (Catalog) name
-     * @param schemas  {@link Set} of Schemas to include; if {@code null} all schemas will be included
-     * @param tables   {@link Set} of Tables to include; if {@code null} all tables will be included
+     * @param database        Database (Catalog) name
+     * @param includedSchemas {@link Set} of Schemas to include; if {@code null} all schemas will be included
+     * @param includedTables  {@link Set} of Tables to include; if {@code null} all tables will be included
+     * @param excludedColumns {@link Set} of Columns to exclude;
+     *                        each column has to be a fully qualified name (e.g. {@code SCHEMA.TABLE.COLUMN})
      * @return A {@link List} of {@link TableSchema} of all the tables found
-     * @throws Exception Thrown if schemas/tables where indicated, but were not found.
+     * @throws Exception Thrown if schemas/tables where indicated but were not found.
      */
     List<TableSchema> fetch(String database,
-                            @Nullable Set<String> schemas,
-                            @Nullable Set<String> tables) throws Exception;
+                            @Nullable Set<String> includedSchemas,
+                            @Nullable Set<String> includedTables,
+                            @Nullable Set<String> excludedColumns) throws Exception;
 }
