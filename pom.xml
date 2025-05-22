@@ -52,7 +52,7 @@
     <ver.commons-codec>1.18.0</ver.commons-codec>
     <ver.debezium>3.0.7.Final</ver.debezium>
     <ver.jackson>2.18.3</ver.jackson>
-    <ver.jgit>7.2.0.202503040940-r</ver.jgit>
+    <ver.jgit>7.2.1.202505142326-r</ver.jgit>
     <ver.junit-jupiter>5.11.4</ver.junit-jupiter>
     <ver.kafka-connect-avro-converter>7.8.0</ver.kafka-connect-avro-converter>
     <ver.kafka>3.8.1</ver.kafka>
