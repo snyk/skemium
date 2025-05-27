@@ -50,26 +50,26 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <ver.avro>1.12.0</ver.avro>
     <ver.commons-codec>1.18.0</ver.commons-codec>
-    <ver.debezium>3.0.7.Final</ver.debezium>
-    <ver.jackson>2.18.3</ver.jackson>
-    <ver.jgit>7.2.0.202503040940-r</ver.jgit>
+    <ver.debezium>3.0.8.Final</ver.debezium>
+    <ver.jackson>2.18.4</ver.jackson>
+    <ver.jgit>7.2.1.202505142326-r</ver.jgit>
     <ver.junit-jupiter>5.11.4</ver.junit-jupiter>
     <ver.kafka-connect-avro-converter>7.8.0</ver.kafka-connect-avro-converter>
     <ver.kafka>3.8.1</ver.kafka>
-    <ver.logback>1.5.16</ver.logback>
+    <ver.logback>1.5.18</ver.logback>
     <ver.maven-assembly>3.7.1</ver.maven-assembly>
     <ver.maven-clean>3.4.0</ver.maven-clean>
     <ver.maven-compiler>3.14.0</ver.maven-compiler>
     <ver.maven-install>3.1.4</ver.maven-install>
     <ver.maven-jar>3.4.2</ver.maven-jar>
+    <ver.maven-native>0.10.6</ver.maven-native>
+    <ver.maven-os-plugin>1.7.1</ver.maven-os-plugin>
     <ver.maven-resources>3.3.1</ver.maven-resources>
     <ver.maven-surefire>3.5.3</ver.maven-surefire>
-    <ver.maven-native>0.10.6</ver.maven-native>
-    <ver.picocli>4.7.6</ver.picocli>
+    <ver.picocli>4.7.7</ver.picocli>
     <ver.postgresql>42.7.5</ver.postgresql>
-    <ver.slf4j>2.0.16</ver.slf4j>
-    <ver.testcontainers.postgresql>1.20.6</ver.testcontainers.postgresql>
-    <ver.maven-os-plugin>1.7.1</ver.maven-os-plugin>
+    <ver.slf4j>2.0.17</ver.slf4j>
+    <ver.testcontainers.postgresql>1.21.0</ver.testcontainers.postgresql>
   </properties>
 
   <dependencyManagement>

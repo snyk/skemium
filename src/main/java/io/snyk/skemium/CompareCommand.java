@@ -26,7 +26,7 @@ import java.util.concurrent.Callable;
         parameterListHeading = "%nParameters:%n",
         optionListHeading = "%nOptions:%n"
 )
-public class CompareCommand implements Callable<Integer> {
+public class CompareCommand extends BaseCommand {
     private static final Logger LOG = LoggerFactory.getLogger(CompareCommand.class);
 
     @Spec
@@ -60,6 +60,7 @@ public class CompareCommand implements Callable<Integer> {
 
     @Override
     public Integer call() {
+        setLogLevelFromVerbosity();
         validate();
         logInput();
 

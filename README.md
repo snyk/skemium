@@ -45,7 +45,6 @@ Options:
 
 ## TODOs
 
-* Configure log verbosity via (repeated) `-v` option
 * Implement `compare` command
 * Support optional `compare` options:
   * Ignore tables present only in _new_ schema (i.e. created tables)

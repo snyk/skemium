@@ -24,7 +24,6 @@ import java.time.format.SignStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import static java.time.temporal.ChronoField.*;
 
@@ -40,7 +39,7 @@ import static java.time.temporal.ChronoField.*;
         parameterListHeading = "%nParameters:%n",
         optionListHeading = "%nOptions:%n"
 )
-public class GenerateCommand implements Callable<Integer> {
+public class GenerateCommand extends BaseCommand {
     private static final Logger LOG = LoggerFactory.getLogger(GenerateCommand.class);
 
     @Spec
@@ -129,6 +128,7 @@ public class GenerateCommand implements Callable<Integer> {
 
     @Override
     public Integer call() {
+        setLogLevelFromVerbosity();
         validate();
         logInput();
 
