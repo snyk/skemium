@@ -1,6 +1,6 @@
 package io.snyk.skemium;
 
-import io.snyk.skemium.avro.AvroSchemaFile;
+import io.snyk.skemium.avro.TableAvroDescriptor;
 import io.snyk.skemium.meta.MetadataFile;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -77,10 +77,10 @@ public class GenerateCommandTest {
 
         // ... specific schemas checksums, as well as a summary of all
         for (final Map.Entry<String, String> schemaMetaEntry : meta.schemas().entrySet()) {
-            final AvroSchemaFile schemaFile = AvroSchemaFile.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
-            assertEquals(schemaMetaEntry.getValue(), schemaFile.checksum());
+            final TableAvroDescriptor tableDesc = TableAvroDescriptor.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
+            assertEquals(schemaMetaEntry.getValue(), tableDesc.checksum());
         }
-        assertEquals("30a7b807f997e2fc6a1ba6bb0ba752c66ec7c38b722f6ddd5b5ae5c165b0fc3b", meta.checksumSHA256());
+        assertEquals("554f6ccc568fdb7df2ae029e5c8cc86151a741fcc87e3e7aa025dfef93b8fc77", meta.checksumSHA256());
 
         // ... VCS information
         assertNotNull(meta.vcsCommit());
@@ -125,10 +125,10 @@ public class GenerateCommandTest {
 
         // ... specific schemas checksums, as well as a summary of all
         for (final Map.Entry<String, String> schemaMetaEntry : meta.schemas().entrySet()) {
-            final AvroSchemaFile schemaFile = AvroSchemaFile.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
-            assertEquals(schemaMetaEntry.getValue(), schemaFile.checksum());
+            final TableAvroDescriptor tableDesc = TableAvroDescriptor.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
+            assertEquals(schemaMetaEntry.getValue(), tableDesc.checksum());
         }
-        assertEquals("83579ef96a2a1340cbb876ce39e44195ff756f34f92eff113608e1084a5f99d1", meta.checksumSHA256());
+        assertEquals("9c7d6c1882f380e607a7e5d14a1ad1f0a9f8712d340aa064d3596888c4114afa", meta.checksumSHA256());
 
         // ... VCS information
         assertNotNull(meta.vcsCommit());
@@ -176,17 +176,17 @@ public class GenerateCommandTest {
         assertEquals(2, meta.schemaCount());
 
         // Confirm `artist` schema contains only `name` field
-        final AvroSchemaFile artistSchemaFile = AvroSchemaFile.loadFrom(TEMP_DIR, "chinook.public.artist");
-        assertNull(artistSchemaFile.avroSchema().getField("artist_id"));
-        assertEquals(1, artistSchemaFile.avroSchema().getFields().size());
-        assertEquals("union[null, string]", artistSchemaFile.avroSchema().getField("name").schema().getName());
+        final TableAvroDescriptor artistTableDesc = TableAvroDescriptor.loadFrom(TEMP_DIR, "chinook.public.artist");
+        assertNull(artistTableDesc.valueSchema().getField("artist_id"));
+        assertEquals(1, artistTableDesc.valueSchema().getFields().size());
+        assertEquals("union[null, string]", artistTableDesc.valueSchema().getField("name").schema().getName());
 
         // Confirm `album` schema contains only the `title` field
-        final AvroSchemaFile albumSchemaFile = AvroSchemaFile.loadFrom(TEMP_DIR, "chinook.public.album");
-        assertNull(albumSchemaFile.avroSchema().getField("album_id"));
-        assertNull(albumSchemaFile.avroSchema().getField("artist_id"));
-        assertEquals(1, albumSchemaFile.avroSchema().getFields().size());
-        assertEquals("string", albumSchemaFile.avroSchema().getField("title").schema().getName());
+        final TableAvroDescriptor albumTableDesc = TableAvroDescriptor.loadFrom(TEMP_DIR, "chinook.public.album");
+        assertNull(albumTableDesc.valueSchema().getField("album_id"));
+        assertNull(albumTableDesc.valueSchema().getField("artist_id"));
+        assertEquals(1, albumTableDesc.valueSchema().getFields().size());
+        assertEquals("string", albumTableDesc.valueSchema().getField("title").schema().getName());
     }
 
     @Test

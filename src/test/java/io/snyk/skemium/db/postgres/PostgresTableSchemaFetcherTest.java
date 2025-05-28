@@ -3,7 +3,6 @@ package io.snyk.skemium.db.postgres;
 import io.debezium.config.Configuration;
 import io.debezium.relational.TableSchema;
 import io.snyk.skemium.TestHelper;
-import org.apache.kafka.connect.data.Field;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

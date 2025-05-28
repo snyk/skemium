@@ -1,22 +1,23 @@
 package io.snyk.skemium.helpers;
 
 import io.confluent.kafka.schemaregistry.CompatibilityLevel;
-import io.snyk.skemium.avro.AvroSchemaFile;
+import io.snyk.skemium.avro.TableAvroDescriptor;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AvroTest {
 
     @Test
     void shouldDetectBackwardIncompatibleSchemaChanges() throws IOException {
         final Path dirPath = Path.of("src", "test", "resources", "schema_change_non_backward_compatible");
-        final AvroSchemaFile curr = AvroSchemaFile.loadFrom(dirPath, "current");
-        final AvroSchemaFile next = AvroSchemaFile.loadFrom(dirPath, "next");
+        final TableAvroDescriptor curr = TableAvroDescriptor.loadFrom(dirPath.resolve("current"), "chinook.public.artist");
+        final TableAvroDescriptor next = TableAvroDescriptor.loadFrom(dirPath.resolve("next"), "chinook.public.artist");
 
         final List<String> compatibility = Avro.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
         assertEquals(2, compatibility.size());
@@ -30,10 +31,16 @@ class AvroTest {
     @Test
     void shouldDetectBackwardCompatibleSchemaChanges() throws IOException {
         final Path dirPath = Path.of("src", "test", "resources", "schema_change_backward_compatible");
-        final AvroSchemaFile curr = AvroSchemaFile.loadFrom(dirPath, "current");
-        final AvroSchemaFile next = AvroSchemaFile.loadFrom(dirPath, "next");
+        final TableAvroDescriptor curr = TableAvroDescriptor.loadFrom(dirPath.resolve("current"), "chinook.public.artist");
+        final TableAvroDescriptor next = TableAvroDescriptor.loadFrom(dirPath.resolve("next"), "chinook.public.artist");
 
-        final List<String> compatibility = Avro.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
-        assertEquals(0, compatibility.size());
+        assertEquals(0, Avro.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD).size());
+        assertEquals(0, Avro.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD_TRANSITIVE).size());
+
+        assertEquals(2, Avro.checkCompatibility(curr, next, CompatibilityLevel.FORWARD).size());
+        assertEquals(2, Avro.checkCompatibility(curr, next, CompatibilityLevel.FORWARD_TRANSITIVE).size());
+
+        assertEquals(1, Avro.checkCompatibility(curr, next, CompatibilityLevel.FULL).size());
+        assertEquals(1, Avro.checkCompatibility(curr, next, CompatibilityLevel.FULL_TRANSITIVE).size());
     }
 }

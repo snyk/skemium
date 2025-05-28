@@ -1,7 +1,7 @@
 {
   "type" : "record",
   "name" : "Value",
-  "namespace" : "com.sun.jna.chinook.artist",
+  "namespace" : "chinook.public.artist",
   "fields" : [ {
     "name" : "artist_id",
     "type" : "int"
@@ -10,5 +10,5 @@
     "type" : [ "null", "string" ],
     "default" : null
   } ],
-  "connect.name" : "com.sun.jna.chinook.artist.Value"
+  "connect.name" : "chinook.public.artist.Value"
 }
