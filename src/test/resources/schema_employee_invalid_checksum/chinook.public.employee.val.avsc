@@ -1,7 +1,7 @@
 {
   "type" : "record",
   "name" : "Value",
-  "namespace" : "com.sun.jna.chinook.employee",
+  "namespace" : "chinook.public.employee",
   "fields" : [ {
     "name" : "employee_id",
     "type" : "int"
@@ -68,5 +68,5 @@
     "type" : [ "null", "string" ],
     "default" : null
   } ],
-  "connect.name" : "com.sun.jna.chinook.employee.Value"
+  "connect.name" : "chinook.public.employee.Value"
 }

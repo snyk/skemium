@@ -3,11 +3,10 @@ package io.snyk.skemium;
 import io.debezium.config.Configuration;
 import io.debezium.relational.RelationalDatabaseConnectorConfig;
 import io.debezium.relational.TableSchema;
-import io.snyk.skemium.avro.AvroSchemaFile;
+import io.snyk.skemium.avro.TableAvroDescriptor;
 import io.snyk.skemium.cli.ManifestReader;
 import io.snyk.skemium.db.DatabaseKind;
 import io.snyk.skemium.db.TableSchemaFetcher;
-import io.snyk.skemium.helpers.Avro;
 import io.snyk.skemium.meta.MetadataFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,14 +146,13 @@ public class GenerateCommand extends BaseCommand {
             LOG.info("Will generate schema to: {}", outputDir.toAbsolutePath().normalize());
 
             // Map table schemas to avro schemas
-            final List<AvroSchemaFile> avroSchemas = tableSchemas.stream().parallel()
-                    .map(Avro::relationalTableSchemaToAvroSchemaHandler)
+            final List<TableAvroDescriptor> avroSchemas = tableSchemas.stream().parallel()
+                    .map(TableAvroDescriptor::build)
                     .sorted((a, b) -> a.identifier().compareTo(b.identifier()))
                     .toList();
 
             // Save avro schemas to the designated output directory
-            for (final AvroSchemaFile as : avroSchemas) {
-                LOG.debug("  {} -> {}", as.identifier(), as.filename());
+            for (final TableAvroDescriptor as : avroSchemas) {
                 as.saveTo(outputDir);
             }
 

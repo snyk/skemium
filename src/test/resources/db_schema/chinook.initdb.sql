@@ -115,6 +115,12 @@ CREATE TABLE playlist_track
     CONSTRAINT playlist_track_pkey PRIMARY KEY (playlist_id, track_id)
 );
 
+CREATE TABLE playlist_track_no_pkey
+(
+    playlist_id INT NOT NULL,
+    track_id    INT NOT NULL
+);
+
 CREATE TABLE track
 (
     track_id      INT            NOT NULL GENERATED ALWAYS AS IDENTITY,
@@ -185,6 +191,14 @@ ALTER TABLE playlist_track
         FOREIGN KEY (track_id) REFERENCES track (track_id) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 CREATE INDEX playlist_track_track_id_idx ON playlist_track (track_id);
+
+ALTER TABLE playlist_track_no_pkey
+    ADD CONSTRAINT playlist_track_no_pkey_playlist_id_fkey
+        FOREIGN KEY (playlist_id) REFERENCES playlist (playlist_id) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE playlist_track_no_pkey
+    ADD CONSTRAINT playlist_track_no_pkey_track_id_fkey
+        FOREIGN KEY (track_id) REFERENCES track (track_id) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ALTER TABLE track
     ADD CONSTRAINT track_album_id_fkey
@@ -16202,3 +16216,9 @@ VALUES (8, 3068),
        (17, 2096),
        (17, 3290),
        (18, 597);
+
+/*******************************************************************************
+   Copy all rows from `playlist_track` to `playlist_track_no_pkey`
+********************************************************************************/
+INSERT INTO playlist_track_no_pkey
+SELECT * FROM playlist_track;

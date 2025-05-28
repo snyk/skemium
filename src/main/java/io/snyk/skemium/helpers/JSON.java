@@ -8,17 +8,13 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * Helper to interact with JSON.
- */
+/// Helper to interact with JSON.
 public class JSON {
     private static final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
 
     public static String pretty(final String jsonStr) throws JsonProcessingException {
-        return objectMapper
-                .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(toJsonNode(jsonStr));
+        return pretty(toJsonNode(jsonStr));
     }
 
     public static JsonNode toJsonNode(final String jsonStr) throws JsonProcessingException {
@@ -33,6 +29,14 @@ public class JSON {
         return objectMapper
                 .writerWithDefaultPrettyPrinter()
                 .writeValueAsString(jsonObj);
+    }
+
+    public static String compact(final Object jsonObj) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(jsonObj);
+    }
+
+    public static String compact(final String jsonStr) throws JsonProcessingException {
+        return compact(toJsonNode(jsonStr));
     }
 
 }
