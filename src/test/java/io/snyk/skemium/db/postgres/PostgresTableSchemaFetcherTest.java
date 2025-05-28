@@ -37,17 +37,19 @@ class PostgresTableSchemaFetcherTest {
             final List<TableSchema> tableSchemas = fetcher.fetch(TestHelper.DB_NAME, null, null, null);
 
             List<String> expectedTableSchemaIds = List.of(
-                    "chinook.public.media_type",
-                    "chinook.public.customer",
-                    "chinook.public.genre",
-                    "chinook.public.track",
-                    "chinook.public.playlist",
-                    "chinook.public.invoice_line",
-                    "chinook.public.playlist_track",
-                    "chinook.public.invoice",
-                    "chinook.public.employee",
+                    "chinook.public.album",
                     "chinook.public.artist",
-                    "chinook.public.album");
+                    "chinook.public.customer",
+                    "chinook.public.employee",
+                    "chinook.public.genre",
+                    "chinook.public.invoice",
+                    "chinook.public.invoice_line",
+                    "chinook.public.media_type",
+                    "chinook.public.playlist",
+                    "chinook.public.playlist_track",
+                    "chinook.public.playlist_track_no_pkey",
+                    "chinook.public.track"
+            );
 
             assertEquals(expectedTableSchemaIds.size(), tableSchemas.size());
             final Map<String, TableSchema> tableSchemasMap = tableSchemas.stream()

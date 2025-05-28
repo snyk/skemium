@@ -117,6 +117,9 @@ But it can be increased by passing one or more `-v` options, to a maximum level 
 * [ ] Support for additional Databases (MySQL, MariaDB, MongoDB, Oracle, SQL Server, ...): currently only PostgreSQL is supported
 * [ ] Support connecting to GCP CloudSQL databases via
   [dedicated `SocketFactory`](https://github.com/GoogleCloudPlatform/cloud-sql-jdbc-socket-factory)
+* [ ] Support custom key definition for a table, similar to what
+  [`message.key.columns`](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-property-message-key-columns)
+  allows when configuring Debezium. This is useful when an arbitrary key is desired or the table is missing a primary key.
 
 # Development
 

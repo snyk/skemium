@@ -73,14 +73,14 @@ public class GenerateCommandTest {
                 TEMP_DIR.toAbsolutePath().toString()), meta.arguments());
 
         // .. count of schemas
-        assertEquals(11, meta.schemaCount());
+        assertEquals(12, meta.schemaCount());
 
         // ... specific schemas checksums, as well as a summary of all
         for (final Map.Entry<String, String> schemaMetaEntry : meta.schemas().entrySet()) {
             final TableAvroDescriptor tableDesc = TableAvroDescriptor.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
             assertEquals(schemaMetaEntry.getValue(), tableDesc.checksum());
         }
-        assertEquals("554f6ccc568fdb7df2ae029e5c8cc86151a741fcc87e3e7aa025dfef93b8fc77", meta.checksumSHA256());
+        assertEquals("52baf9d72eeb42571ffdfb2051447a4af1fb1896a8afb202be57b2485f28e8d3", meta.checksumSHA256());
 
         // ... VCS information
         assertNotNull(meta.vcsCommit());
@@ -258,5 +258,42 @@ public class GenerateCommandTest {
                 "--password", TestHelper.DB_PASS,
                 TEMP_DIR.toAbsolutePath().toString()
         ));
+    }
+
+    @Test
+    void shouldNotProvideKeySchemaForTableWithoutPrimaryKey() throws IOException {
+        // TODO Map logger to stdout/err, if possible
+        final CommandLine cmdLine = new CommandLine(new GenerateCommand())
+                .setOut(new PrintWriter(new StringWriter()))
+                .setErr(new PrintWriter(new StringWriter()));
+
+        // `generate` runs successfully
+        assertEquals(0, cmdLine.execute(
+                "--hostname", POSTGRES_CONTAINER.getHost(),
+                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
+                "--database", TestHelper.DB_NAME,
+                "--username", TestHelper.DB_USER,
+                "--password", TestHelper.DB_PASS,
+                "--table", "playlist_track",
+                "--table", "playlist_track_no_pkey",
+                TEMP_DIR.toAbsolutePath().toString()
+        ));
+
+        // Metadata file contains...
+        final MetadataFile meta = MetadataFile.loadFrom(TEMP_DIR);
+        assertEquals(2, meta.schemaCount());
+
+        // Confirm `artist` schema contains only `name` field
+        final TableAvroDescriptor playlistTrackDec = TableAvroDescriptor.loadFrom(TEMP_DIR, "chinook.public.playlist_track");
+        final TableAvroDescriptor playlistTrackNoPKeyDec = TableAvroDescriptor.loadFrom(TEMP_DIR, "chinook.public.playlist_track_no_pkey");
+
+        assertNotNull(playlistTrackDec.keySchema());
+        assertNull(playlistTrackNoPKeyDec.keySchema());
+
+        assertNotNull(playlistTrackDec.valueSchema());
+        assertNotNull(playlistTrackNoPKeyDec.valueSchema());
+
+        assertNotNull(playlistTrackDec.envelopeSchema());
+        assertNotNull(playlistTrackNoPKeyDec.envelopeSchema());
     }
 }
