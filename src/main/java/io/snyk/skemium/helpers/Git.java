@@ -11,34 +11,29 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-/**
- * Helper to interact with local Git repositories.
- */
+/// Helper to interact with local Git repositories.
 public class Git {
     private static final Logger LOG = LoggerFactory.getLogger(Git.class);
 
-    /**
-     * Information about a local Git repository current commit, branch and tag (if any).
-     *
-     * @param commit Current commit of the local Git repository
-     * @param branch Current branch of the local Git repository
-     * @param tag    Current tag of the local Git repository; {@code null} if none set
-     */
-    public record GitInfo(String commit, String branch, String tag) {
+    /// Information about a local Git repository current commit, branch and tag (if any).
+    ///
+    /// @param commit Current commit of the local Git repository; `null` if not found
+    /// @param branch Current branch of the local Git repository; `null` if not found
+    /// @param tag    Current tag of the local Git repository; `null` if none set
+    public record GitInfo(@Nullable String commit, @Nullable String branch, @Nullable String tag) {
     }
 
-    /**
-     * Returns current information about a local Git Repository.
-     *
-     * @param gitRepoPath Local path to the repository
-     * @return A {@link GitInfo} object
-     * @throws IOException
-     * @throws GitAPIException
-     */
+    /// Returns current information about a local Git Repository.
+    ///
+    /// @param gitRepoPath Local path to the repository
+    /// @return A [GitInfo] object
+    /// @throws IOException
+    /// @throws GitAPIException
     public static GitInfo getInfo(final Path gitRepoPath) throws IOException, GitAPIException {
         final FileRepositoryBuilder repoBuilder = new FileRepositoryBuilder()
                 .setGitDir(gitRepoPath.resolve(".git").toFile());
@@ -56,13 +51,11 @@ public class Git {
         }
     }
 
-    /**
-     * Similar to {@link #getInfo(Path)}, but logs and returns an "empty" {@link GitInfo} if it fails.
-     * For example, it can fail if the given gitRepoPath is not a Git repository.
-     *
-     * @param gitRepoPath Local path to the repository
-     * @return A {@link GitInfo} object
-     */
+    /// Similar to [#getInfo(Path)], but logs and returns an "empty" [GitInfo] if it fails.
+    /// For example, it can fail if the given gitRepoPath is not a Git repository.
+    ///
+    /// @param gitRepoPath Local path to the repository
+    /// @return A [GitInfo] object
     public static GitInfo tryGetInfo(final Path gitRepoPath) {
         try {
             return Git.getInfo(gitRepoPath);

@@ -9,6 +9,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -24,7 +26,10 @@ import static io.snyk.skemium.helpers.Avro.kafkaConnectSchemaToAvroSchema;
 /// @param keySchema      Avro [Schema] for the Key (primary key of the table) or `null` if absent
 /// @param valueSchema    Avro [Schema] for the Value (row of the table)
 /// @param envelopeSchema Avro [Schema] for the Debezium {@link io.debezium.data.Envelope}
-public record TableAvroDescriptor(String identifier, Schema keySchema, Schema valueSchema, Schema envelopeSchema) {
+public record TableAvroDescriptor(@Nonnull String identifier,
+                                  @Nullable Schema keySchema,
+                                  @Nonnull Schema valueSchema,
+                                  @Nonnull Schema envelopeSchema) {
     private static final Logger LOG = LoggerFactory.getLogger(TableAvroDescriptor.class);
 
     private static final String KEY_FILENAME_FMT = "%s.key.avsc";
