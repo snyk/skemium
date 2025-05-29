@@ -114,12 +114,15 @@ But it can be increased by passing one or more `-v` options, to a maximum level 
 
 # Future features
 
+* [ ] Support for JSON output for `compare` command
 * [ ] Support for additional Databases (MySQL, MariaDB, MongoDB, Oracle, SQL Server, ...): currently only PostgreSQL is supported
 * [ ] Support connecting to GCP CloudSQL databases via
   [dedicated `SocketFactory`](https://github.com/GoogleCloudPlatform/cloud-sql-jdbc-socket-factory)
 * [ ] Support custom key definition for a table, similar to what
   [`message.key.columns`](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-property-message-key-columns)
   allows when configuring Debezium. This is useful when an arbitrary key is desired or the table is missing a primary key.
+* [ ] Support for _generating_ and _comparing_ [JSON Schema] 
+* [ ] Support for _generating_ and _comparing_ [Protobuf] schemas 
 
 # Development
 
@@ -163,3 +166,5 @@ But I want to especially thank 2 projects for the _core_ of the functionality:
 [Debezium CDC Source Connector]: https://debezium.io/documentation/reference/stable/connectors/index.html
 [Schema Registry]: https://docs.confluent.io/platform/6.2/schema-registry/index.html
 [Debezium Avro Serialization]: https://debezium.io/documentation/reference/stable/configuration/avro.html
+[JSON Schema]: https://json-schema.org/
+[Protobuf]: https://protobuf.dev/
