@@ -1,6 +1,10 @@
 package io.snyk.skemium;
 
+import com.google.common.collect.Sets;
 import io.confluent.kafka.schemaregistry.CompatibilityLevel;
+import io.snyk.skemium.avro.TableAvroSchemas;
+import io.snyk.skemium.helpers.SchemaRegistry;
+import io.snyk.skemium.meta.MetadataFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -12,7 +16,7 @@ import picocli.CommandLine.Spec;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.concurrent.Callable;
+import java.util.Set;
 
 @Command(
         name = "compare",
@@ -42,11 +46,20 @@ public class CompareCommand extends BaseCommand {
     )
     CompatibilityLevel compatibilityLevel = CompatibilityLevel.BACKWARD;
 
+    @Option(
+            names = {"-i", "--ci", "--ci-mode"},
+            defaultValue = "${env:CI_MODE}",
+            showDefaultValue = CommandLine.Help.Visibility.ALWAYS,
+            description = """
+                    CI mode - Fail when a Table is only detected in one of the two directories (env: CI_MODE - optional)"""
+    )
+    Boolean ciMode = false;
+
     @Parameters(
             arity = "1",
             index = "0",
             paramLabel = "CURR_SCHEMAS_DIR",
-            description = "Directory with the CURRENT Database table schemas"
+            description = "Directory with the CURRENT Database Table schemas"
     )
     Path currSchemasDir;
 
@@ -54,7 +67,7 @@ public class CompareCommand extends BaseCommand {
             arity = "1",
             index = "1",
             paramLabel = "NEXT_SCHEMAS_DIR",
-            description = "Directory with the NEXT Database table schemas"
+            description = "Directory with the NEXT Database Table schemas"
     )
     Path nextSchemasDir;
 
@@ -64,28 +77,91 @@ public class CompareCommand extends BaseCommand {
         validate();
         logInput();
 
-        /* TODO pseudo-logic
-        *    1. READ LIST of AVSCs in CURRENT and NEXT
-        *    2. FOR each AVSC in CURRENT:
-        *      2a. Apply Avro.checkCompatibility between CURR.AVSC and NEXT.AVSC
-        *      2b. Accumulate any string (error) reported, grouped by AVSC, in RESULTS
-        *      Q1: WHAT do we do if NEXT.AVSC doesn't exist? (i.e. a table was removed)
-        *        A1: Log error and suggest they need to update CURR schema
-        *    3. IF RESULTS.isEmpty()
-        *      3a. EXIT with 0
-        *      3b. ELSE log errors and EXIT with 1
-        *
-        * TODO Questions
-        *  Q2: WHAT do we do for AVSC only present in NEXT? (i.e. a new table)
-        *    A2: Add a "CI" mode, where it's INFO normally, but ERROR during CI
-        *  Q3: SHOULD it support "schema" and "table" filtering, like the `generate` command?
-        *    A3: NOPE. The filtering is left at `generate`, and this command should compare "as-is"
-        *
-        * TODO additional checks
-        * */
+        try {
+            final MetadataFile currMeta = MetadataFile.loadFrom(currSchemasDir);
+            final Set<String> currTableIds = currMeta.getTableSchemasIdentifiers();
 
+            final MetadataFile nextMeta = MetadataFile.loadFrom(nextSchemasDir);
+            final Set<String> nextTableIds = nextMeta.getTableSchemasIdentifiers();
 
-        return 0;
+            int totIncompatibilities = 0;
+            int keyIncompatibilities = 0;
+            int valIncompatibilities = 0;
+            int envIncompatibilities = 0;
+            for (final String tableId : currTableIds) {
+                LOG.debug("Checking compatibility '{}' for Table '{}'", compatibilityLevel, tableId);
+
+                if (!nextTableIds.contains(tableId)) {
+                    LOG.warn("Table '{}' not found in NEXT Database Schema: skipping compatibility check (table dropped?)", tableId);
+                    continue;
+                }
+
+                final TableAvroSchemas currTableSchemas = TableAvroSchemas.loadFrom(currSchemasDir, tableId);
+                final TableAvroSchemas nextTableSchemas = TableAvroSchemas.loadFrom(nextSchemasDir, tableId);
+                final SchemaRegistry.CompatibilityResult res = SchemaRegistry.checkCompatibility(
+                        currTableSchemas,
+                        nextTableSchemas,
+                        compatibilityLevel);
+                if (res.isCompatible()) {
+                    LOG.info("Compatibility for Table '{}' preserved", tableId);
+                } else {
+                    LOG.trace("Checking Table '{}' Key Incompatibilities", tableId);
+                    for (final String err : res.keyResults()) {
+                        keyIncompatibilities++;
+                        totIncompatibilities++;
+                        LOG.error("Table '{}' Key Incompatibility: {}", tableId, err);
+                    }
+
+                    LOG.trace("Checking Table '{}' Value Incompatibilities", tableId);
+                    for (final String err : res.valueResults()) {
+                        valIncompatibilities++;
+                        totIncompatibilities++;
+                        LOG.error("Table '{}' Value Incompatibility: {}", tableId, err);
+                    }
+
+                    LOG.trace("Checking Table '{}' Envelope Incompatibilities", tableId);
+                    for (final String err : res.envelopeResults()) {
+                        envIncompatibilities++;
+                        totIncompatibilities++;
+                        LOG.error("Table '{}' Envelope Incompatibility: {}", tableId, err);
+                    }
+                }
+            }
+
+            // Determine if the compatibility check was passed
+            boolean checkPassed = true;
+
+            // Were there incompatibilities detected?
+            if (totIncompatibilities > 0) {
+                checkPassed = false;
+
+                LOG.error("Incompatibilities: {}", totIncompatibilities);
+                LOG.error("  Key Incompatibilities: {}", keyIncompatibilities);
+                LOG.error("  Value Incompatibilities: {}", valIncompatibilities);
+                LOG.error("  Envelope Incompatibilities: {}", envIncompatibilities);
+            }
+
+            // Were there table removals/additions detected?
+            final Sets.SetView<String> removedTables = Sets.difference(currTableIds, nextTableIds);
+            final Sets.SetView<String> addedTables = Sets.difference(nextTableIds, currTableIds);
+            if (!removedTables.isEmpty()) {
+                checkPassed = !ciMode && checkPassed;
+
+                LOG.error("Tables removed between CURRENT and NEXT: {}", removedTables.size());
+                removedTables.forEach(removedTableId -> LOG.error("  {}", removedTableId));
+            }
+            if (!addedTables.isEmpty()) {
+                checkPassed = !ciMode && checkPassed;
+
+                LOG.error("Tables added between CURRENT and NEXT: {}", addedTables.size());
+                addedTables.forEach(addedTableId -> LOG.error("  {}", addedTableId));
+            }
+
+            return checkPassed ? 0 : 1;
+        } catch (Exception e) {
+            LOG.error("Failed to compare Database Tables Schemas", e);
+            return 1;
+        }
     }
 
     private void validate() throws CommandLine.ParameterException {

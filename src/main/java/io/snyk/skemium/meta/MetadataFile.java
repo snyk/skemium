@@ -96,4 +96,14 @@ public record MetadataFile(
 
         return JSON.from(fileInputPath.toFile(), MetadataFile.class);
     }
+
+    /// Shorthand to get to the keys of the [#schemas] map.
+    public Set<String> getTableSchemasIdentifiers() {
+        return schemas.keySet();
+    }
+
+    /// Shorthand to check if a [TableAvroSchemas] with the given identifier is present.
+    public boolean hasTableSchemas(String identifier) {
+        return schemas.containsKey(identifier);
+    }
 }
