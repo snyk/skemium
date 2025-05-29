@@ -50,7 +50,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <ver.avro>1.12.0</ver.avro>
     <ver.commons-codec>1.18.0</ver.commons-codec>
-    <ver.debezium>3.0.8.Final</ver.debezium>
+    <ver.debezium>3.1.1.Final</ver.debezium>
     <ver.jackson>2.18.4</ver.jackson>
     <ver.jgit>7.2.1.202505142326-r</ver.jgit>
     <ver.junit-jupiter>5.11.4</ver.junit-jupiter>
