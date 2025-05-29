@@ -20,9 +20,9 @@ public class SchemaRegistry {
     /// @param next               Next schemas, provided as a [TableAvroSchemas]
     /// @param compatibilityLevel Compatibility Level to apply
     /// @return [CheckCompatibilityResult]
-    public static CheckCompatibilityResult checkCompatibility(final TableAvroSchemas curr,
-                                                              final TableAvroSchemas next,
-                                                              final CompatibilityLevel compatibilityLevel) {
+    public static CompatibilityResult checkCompatibility(final TableAvroSchemas curr,
+                                                         final TableAvroSchemas next,
+                                                         final CompatibilityLevel compatibilityLevel) {
         final CompatibilityChecker checker = CompatibilityChecker.checker(compatibilityLevel);
 
         if (!Objects.equals(curr.identifier(), next.identifier())) {
@@ -52,7 +52,7 @@ public class SchemaRegistry {
             );
         }
 
-        return new CheckCompatibilityResult(
+        return new CompatibilityResult(
                 compatibilityLevel,
                 keyCompatibilityErrors,
                 checker.isCompatible(
@@ -72,10 +72,10 @@ public class SchemaRegistry {
     /// @param keyResults         [List] of errors reported for the Key Schema
     /// @param valueResults       [List] of errors reported for the Value Schema
     /// @param envelopeResults    [List] of errors reported for the Envelope Schema
-    public record CheckCompatibilityResult(@Nonnull CompatibilityLevel checkedLevel,
-                                           @Nonnull List<String> keyResults,
-                                           @Nonnull List<String> valueResults,
-                                           @Nonnull List<String> envelopeResults) {
+    public record CompatibilityResult(@Nonnull CompatibilityLevel checkedLevel,
+                                      @Nonnull List<String> keyResults,
+                                      @Nonnull List<String> valueResults,
+                                      @Nonnull List<String> envelopeResults) {
         public boolean isKeyCompatible() {
             return keyResults.isEmpty();
         }

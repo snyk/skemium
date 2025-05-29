@@ -17,7 +17,7 @@ class SchemaRegistryTest {
         final TableAvroSchemas curr = TableAvroSchemas.loadFrom(dirPath.resolve("current"), "chinook.public.artist");
         final TableAvroSchemas next = TableAvroSchemas.loadFrom(dirPath.resolve("next"), "chinook.public.artist");
 
-        final SchemaRegistry.CheckCompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
+        final SchemaRegistry.CompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
         assertFalse(res.isCompatible());
         assertTrue(res.isKeyCompatible());
         assertFalse(res.isValueCompatible());
@@ -42,7 +42,7 @@ class SchemaRegistryTest {
         final TableAvroSchemas curr = TableAvroSchemas.loadFrom(dirPath.resolve("current"), "chinook.public.artist");
         final TableAvroSchemas next = TableAvroSchemas.loadFrom(dirPath.resolve("next"), "chinook.public.artist");
 
-        SchemaRegistry.CheckCompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
+        SchemaRegistry.CompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
         assertTrue(res.isCompatible());
         res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD_TRANSITIVE);
         assertTrue(res.isCompatible());
@@ -76,7 +76,7 @@ class SchemaRegistryTest {
         final TableAvroSchemas curr = TableAvroSchemas.loadFrom(dirPath.resolve("current"), "chinook.public.playlist_track");
         final TableAvroSchemas next = TableAvroSchemas.loadFrom(dirPath.resolve("next"), "chinook.public.playlist_track");
 
-        final SchemaRegistry.CheckCompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
+        final SchemaRegistry.CompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
         assertFalse(res.isCompatible());
         assertFalse(res.isKeyCompatible());
         assertTrue(res.keyResults().getFirst().matches("Key Schema for 'chinook\\.public\\.playlist_track' changed from NULL to NOT NULL \\((.*)\\)"));
@@ -90,7 +90,7 @@ class SchemaRegistryTest {
         final TableAvroSchemas curr = TableAvroSchemas.loadFrom(dirPath.resolve("current"), "chinook.public.playlist_track");
         final TableAvroSchemas next = TableAvroSchemas.loadFrom(dirPath.resolve("next"), "chinook.public.playlist_track");
 
-        final SchemaRegistry.CheckCompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
+        final SchemaRegistry.CompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
         assertFalse(res.isCompatible());
         assertFalse(res.isKeyCompatible());
         assertTrue(res.keyResults().getFirst().matches("Key Schema for 'chinook.public.playlist_track' changed from NOT NULL \\((.*)\\) to NULL"));
