@@ -14,7 +14,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TableAvroDescriptorTest {
+class TableAvroSchemasTest {
 
     Path TEMP_DIR;
 
@@ -30,7 +30,7 @@ class TableAvroDescriptorTest {
 
     @Test
     void shouldLoadAndSaveFromFilesystem() throws IOException {
-        final TableAvroDescriptor employee = TableAvroDescriptor.loadFrom(TestHelper.RESOURCES.resolve("schema_employee"), "chinook.public.employee");
+        final TableAvroSchemas employee = TableAvroSchemas.loadFrom(TestHelper.RESOURCES.resolve("schema_employee"), "chinook.public.employee");
 
         assertEquals("chinook.public.employee.key.avsc", employee.keyFilename());
         assertEquals("chinook.public.employee.val.avsc", employee.valueFilename());
@@ -57,7 +57,7 @@ class TableAvroDescriptorTest {
 
     @Test
     void shouldConvertValueSchemaToSchemaRegistryAvroSchemaType() throws IOException {
-        final TableAvroDescriptor employee = TableAvroDescriptor.loadFrom(TestHelper.RESOURCES.resolve("schema_employee"), "chinook.public.employee");
+        final TableAvroSchemas employee = TableAvroSchemas.loadFrom(TestHelper.RESOURCES.resolve("schema_employee"), "chinook.public.employee");
 
         final AvroSchema valueRegAvroSchema = employee.valueSchemaToSchemaRegistryAvroSchema();
         assertEquals("AVRO", valueRegAvroSchema.schemaType());
@@ -87,7 +87,7 @@ class TableAvroDescriptorTest {
     @Test
     void shouldThrowIfChecksumDoesNotMatch() {
         final IOException expectedException = assertThrows(IOException.class, () -> {
-            TableAvroDescriptor.loadFrom(TestHelper.RESOURCES.resolve("schema_employee_invalid_checksum"), "chinook.public.employee");
+            TableAvroSchemas.loadFrom(TestHelper.RESOURCES.resolve("schema_employee_invalid_checksum"), "chinook.public.employee");
         });
 
         assertTrue(expectedException

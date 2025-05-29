@@ -2,7 +2,7 @@ package io.snyk.skemium.helpers;
 
 import io.confluent.kafka.schemaregistry.CompatibilityChecker;
 import io.confluent.kafka.schemaregistry.CompatibilityLevel;
-import io.snyk.skemium.avro.TableAvroDescriptor;
+import io.snyk.skemium.avro.TableAvroSchemas;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,14 +14,14 @@ import java.util.Objects;
 public class SchemaRegistry {
     private static final Logger LOG = LoggerFactory.getLogger(SchemaRegistry.class);
 
-    /// Check compatibility between a "Curr(ent)" and a "Next" [TableAvroDescriptor], applying the given [CompatibilityLevel].
+    /// Check compatibility between a "Curr(ent)" and a "Next" [TableAvroSchemas], applying the given [CompatibilityLevel].
     ///
-    /// @param curr               Current schemas, provided as a [TableAvroDescriptor]
-    /// @param next               Next schemas, provided as a [TableAvroDescriptor]
+    /// @param curr               Current schemas, provided as a [TableAvroSchemas]
+    /// @param next               Next schemas, provided as a [TableAvroSchemas]
     /// @param compatibilityLevel Compatibility Level to apply
     /// @return [CheckCompatibilityResult]
-    public static CheckCompatibilityResult checkCompatibility(final TableAvroDescriptor curr,
-                                                              final TableAvroDescriptor next,
+    public static CheckCompatibilityResult checkCompatibility(final TableAvroSchemas curr,
+                                                              final TableAvroSchemas next,
                                                               final CompatibilityLevel compatibilityLevel) {
         final CompatibilityChecker checker = CompatibilityChecker.checker(compatibilityLevel);
 

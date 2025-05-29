@@ -1,6 +1,6 @@
 package io.snyk.skemium;
 
-import io.snyk.skemium.avro.TableAvroDescriptor;
+import io.snyk.skemium.avro.TableAvroSchemas;
 import io.snyk.skemium.meta.MetadataFile;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -77,8 +77,8 @@ public class GenerateCommandTest {
 
         // ... specific schemas checksums, as well as a summary of all
         for (final Map.Entry<String, String> schemaMetaEntry : meta.schemas().entrySet()) {
-            final TableAvroDescriptor tableDesc = TableAvroDescriptor.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
-            assertEquals(schemaMetaEntry.getValue(), tableDesc.checksum());
+            final TableAvroSchemas tableSchemas = TableAvroSchemas.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
+            assertEquals(schemaMetaEntry.getValue(), tableSchemas.checksum());
         }
         assertEquals("52baf9d72eeb42571ffdfb2051447a4af1fb1896a8afb202be57b2485f28e8d3", meta.checksumSHA256());
 
@@ -125,8 +125,8 @@ public class GenerateCommandTest {
 
         // ... specific schemas checksums, as well as a summary of all
         for (final Map.Entry<String, String> schemaMetaEntry : meta.schemas().entrySet()) {
-            final TableAvroDescriptor tableDesc = TableAvroDescriptor.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
-            assertEquals(schemaMetaEntry.getValue(), tableDesc.checksum());
+            final TableAvroSchemas tableSchemas = TableAvroSchemas.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
+            assertEquals(schemaMetaEntry.getValue(), tableSchemas.checksum());
         }
         assertEquals("9c7d6c1882f380e607a7e5d14a1ad1f0a9f8712d340aa064d3596888c4114afa", meta.checksumSHA256());
 
@@ -176,17 +176,17 @@ public class GenerateCommandTest {
         assertEquals(2, meta.schemaCount());
 
         // Confirm `artist` schema contains only `name` field
-        final TableAvroDescriptor artistTableDesc = TableAvroDescriptor.loadFrom(TEMP_DIR, "chinook.public.artist");
-        assertNull(artistTableDesc.valueSchema().getField("artist_id"));
-        assertEquals(1, artistTableDesc.valueSchema().getFields().size());
-        assertEquals("union[null, string]", artistTableDesc.valueSchema().getField("name").schema().getName());
+        final TableAvroSchemas artistTableSchemas = TableAvroSchemas.loadFrom(TEMP_DIR, "chinook.public.artist");
+        assertNull(artistTableSchemas.valueSchema().getField("artist_id"));
+        assertEquals(1, artistTableSchemas.valueSchema().getFields().size());
+        assertEquals("union[null, string]", artistTableSchemas.valueSchema().getField("name").schema().getName());
 
         // Confirm `album` schema contains only the `title` field
-        final TableAvroDescriptor albumTableDesc = TableAvroDescriptor.loadFrom(TEMP_DIR, "chinook.public.album");
-        assertNull(albumTableDesc.valueSchema().getField("album_id"));
-        assertNull(albumTableDesc.valueSchema().getField("artist_id"));
-        assertEquals(1, albumTableDesc.valueSchema().getFields().size());
-        assertEquals("string", albumTableDesc.valueSchema().getField("title").schema().getName());
+        final TableAvroSchemas albumTableSchemas = TableAvroSchemas.loadFrom(TEMP_DIR, "chinook.public.album");
+        assertNull(albumTableSchemas.valueSchema().getField("album_id"));
+        assertNull(albumTableSchemas.valueSchema().getField("artist_id"));
+        assertEquals(1, albumTableSchemas.valueSchema().getFields().size());
+        assertEquals("string", albumTableSchemas.valueSchema().getField("title").schema().getName());
     }
 
     @Test
@@ -284,8 +284,8 @@ public class GenerateCommandTest {
         assertEquals(2, meta.schemaCount());
 
         // Confirm `artist` schema contains only `name` field
-        final TableAvroDescriptor playlistTrackDec = TableAvroDescriptor.loadFrom(TEMP_DIR, "chinook.public.playlist_track");
-        final TableAvroDescriptor playlistTrackNoPKeyDec = TableAvroDescriptor.loadFrom(TEMP_DIR, "chinook.public.playlist_track_no_pkey");
+        final TableAvroSchemas playlistTrackDec = TableAvroSchemas.loadFrom(TEMP_DIR, "chinook.public.playlist_track");
+        final TableAvroSchemas playlistTrackNoPKeyDec = TableAvroSchemas.loadFrom(TEMP_DIR, "chinook.public.playlist_track_no_pkey");
 
         assertNotNull(playlistTrackDec.keySchema());
         assertNull(playlistTrackNoPKeyDec.keySchema());

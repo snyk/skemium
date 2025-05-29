@@ -21,26 +21,28 @@ import java.util.Objects;
 
 import static io.snyk.skemium.helpers.Avro.kafkaConnectSchemaToAvroSchema;
 
-/// Describes a Database Table as an aggregation of Avro Schemas and an identifier.
+/// Describes a Database Table as an aggregation of Avro Schemas, with an identifier.
+///
+/// This is the _unit_ on which Skemium operates.
 ///
 /// @param identifier     The identifier of the table
 /// @param keySchema      Avro [Schema] for the Key (primary key of the table) or `null` if absent
 /// @param valueSchema    Avro [Schema] for the Value (row of the table)
 /// @param envelopeSchema Avro [Schema] for the Debezium {@link io.debezium.data.Envelope}
-public record TableAvroDescriptor(@Nonnull String identifier,
-                                  @Nullable Schema keySchema,
-                                  @Nonnull Schema valueSchema,
-                                  @Nonnull Schema envelopeSchema) {
-    private static final Logger LOG = LoggerFactory.getLogger(TableAvroDescriptor.class);
+public record TableAvroSchemas(@Nonnull String identifier,
+                               @Nullable Schema keySchema,
+                               @Nonnull Schema valueSchema,
+                               @Nonnull Schema envelopeSchema) {
+    private static final Logger LOG = LoggerFactory.getLogger(TableAvroSchemas.class);
 
     private static final String KEY_FILENAME_FMT = "%s.key.avsc";
     private static final String VALUE_FILENAME_FMT = "%s.val.avsc";
     private static final String ENVELOPE_FILENAME_FMT = "%s.env.avsc";
     private static final String CHECKSUM_FILENAME_FMT = "%s.sha256";
 
-    /// Builds a [TableAvroDescriptor] from a Debezium [TableSchema].
-    public static TableAvroDescriptor build(final TableSchema debeziumTableSchema) {
-        return new TableAvroDescriptor(
+    /// Builds a [TableAvroSchemas] from a Debezium [TableSchema].
+    public static TableAvroSchemas build(final TableSchema debeziumTableSchema) {
+        return new TableAvroSchemas(
                 debeziumTableSchema.id().identifier(),
                 kafkaConnectSchemaToAvroSchema(debeziumTableSchema.keySchema()),
                 kafkaConnectSchemaToAvroSchema(debeziumTableSchema.valueSchema()),
@@ -63,7 +65,7 @@ public record TableAvroDescriptor(@Nonnull String identifier,
         return ENVELOPE_FILENAME_FMT.formatted(identifier);
     }
 
-    /// @return SHA256 checksum of this descriptor.
+    /// @return SHA256 checksum of all the table avro schemas.
     public String checksum() {
         final StringBuilder sb = new StringBuilder();
         if (keySchema != null) {
@@ -75,12 +77,12 @@ public record TableAvroDescriptor(@Nonnull String identifier,
         return DigestUtils.sha256Hex(sb.toString());
     }
 
-    /// @return Filename of the SHA256 checksum of this descriptor.
+    /// @return Filename of the SHA256 checksum of all the table avro schemas.
     public String checksumFilename() {
         return CHECKSUM_FILENAME_FMT.formatted(identifier);
     }
 
-    /// Saves the descriptor to filesystem in the given directory.
+    /// Saves the [TableAvroSchemas] to filesystem in the given directory.
     ///
     /// The files will be named based on the [#identifier()].
     /// An additional file with the content of [#checksum()] will also be created and named [#checksumFilename()].
@@ -137,7 +139,7 @@ public record TableAvroDescriptor(@Nonnull String identifier,
         return new AvroSchema(envelopeSchema);
     }
 
-    /// Loads an [TableAvroDescriptor] from filesystem.
+    /// Loads an [TableAvroSchemas] from filesystem.
     /// It validates the checksum on the filesystem (sibling file) with the one computed from the input [Schema]s.
     /// It will throw in case of mismatch.
     ///
@@ -145,9 +147,9 @@ public record TableAvroDescriptor(@Nonnull String identifier,
     ///
     /// @param inputDir   [Path] to the directory
     /// @param identifier The identifier of the schema
-    /// @return An [TableAvroDescriptor]
+    /// @return An [TableAvroSchemas]
     /// @throws IOException
-    public static TableAvroDescriptor loadFrom(@Nonnull final Path inputDir, @Nonnull final String identifier) throws IOException {
+    public static TableAvroSchemas loadFrom(@Nonnull final Path inputDir, @Nonnull final String identifier) throws IOException {
         final Path keyInputPath = inputDir.toAbsolutePath().resolve(KEY_FILENAME_FMT.formatted(identifier));
         final Path valueInputPath = inputDir.toAbsolutePath().resolve(VALUE_FILENAME_FMT.formatted(identifier));
         final Path envelopeInputPath = inputDir.toAbsolutePath().resolve(ENVELOPE_FILENAME_FMT.formatted(identifier));
@@ -176,7 +178,7 @@ public record TableAvroDescriptor(@Nonnull String identifier,
             LOG.warn("ENVELOPE Avro Schema does not match Table identifier: '{}' != '{}'", envelopeSchema.getNamespace(), identifier);
         }
 
-        final TableAvroDescriptor res = new TableAvroDescriptor(identifier, keySchema, valueSchema, envelopeSchema);
+        final TableAvroSchemas res = new TableAvroSchemas(identifier, keySchema, valueSchema, envelopeSchema);
 
         if (!checksumInputPath.toFile().exists()) {
             LOG.warn("Checksum '{}' not found: skipping validation", identifier);

@@ -6,24 +6,22 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Interface describing an {@link AutoCloseable} type that can fetch all/some {@link TableSchema} from a Database.
- */
+/// Interface describing a [AutoCloseable] type that can fetch all/some [TableSchema] from a Database.
 public interface TableSchemaFetcher extends AutoCloseable {
-    /**
-     * Fetches all the {@link TableSchema} in the Database.
-     * Optionally a filtering can be done, specifying specific Schemas and/or Tables.
-     * <p>
-     * TODO Add support to filter columns, similarly to schemas and tables.
-     *
-     * @param database        Database (Catalog) name
-     * @param includedSchemas {@link Set} of Schemas to include; if {@code null} all schemas will be included
-     * @param includedTables  {@link Set} of Tables to include; if {@code null} all tables will be included
-     * @param excludedColumns {@link Set} of Columns to exclude;
-     *                        each column has to be a fully qualified name (e.g. {@code SCHEMA.TABLE.COLUMN})
-     * @return A {@link List} of {@link TableSchema} of all the tables found
-     * @throws Exception Thrown if schemas/tables where indicated but were not found.
-     */
+    /// Fetches all the [TableSchema] in the Database.
+    /// Optionally, filtering can be applied:
+    ///
+    ///   * Only include specific Database Schemas
+    ///   * Only include specific Database Tables
+    ///   * Exclude specific Table Columns/
+    ///
+    /// @param database        Database (Catalog) name
+    /// @param includedSchemas [Set] of Schemas to include; if `null` all schemas are included
+    /// @param includedTables  [Set] of Tables to include; if `null` all tables are included
+    /// @param excludedColumns [Set] of Columns to exclude;
+    ///                        each column has to be a fully qualified name (e.g. `SCHEMA.TABLE.COLUMN`)
+    /// @return A [List] of [TableSchema] of all the tables found
+    /// @throws Exception Thrown if schemas/tables where indicated but were not found.
     List<TableSchema> fetch(String database,
                             @Nullable Set<String> includedSchemas,
                             @Nullable Set<String> includedTables,

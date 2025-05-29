@@ -3,7 +3,7 @@ package io.snyk.skemium;
 import io.debezium.config.Configuration;
 import io.debezium.relational.RelationalDatabaseConnectorConfig;
 import io.debezium.relational.TableSchema;
-import io.snyk.skemium.avro.TableAvroDescriptor;
+import io.snyk.skemium.avro.TableAvroSchemas;
 import io.snyk.skemium.cli.ManifestReader;
 import io.snyk.skemium.db.DatabaseKind;
 import io.snyk.skemium.db.TableSchemaFetcher;
@@ -146,18 +146,18 @@ public class GenerateCommand extends BaseCommand {
             LOG.info("Will generate schema to: {}", outputDir.toAbsolutePath().normalize());
 
             // Map table schemas to avro schemas
-            final List<TableAvroDescriptor> avroSchemas = tableSchemas.stream().parallel()
-                    .map(TableAvroDescriptor::build)
+            final List<TableAvroSchemas> tablesAvroSchemas = tableSchemas.stream().parallel()
+                    .map(TableAvroSchemas::build)
                     .sorted((a, b) -> a.identifier().compareTo(b.identifier()))
                     .toList();
 
             // Save avro schemas to the designated output directory
-            for (final TableAvroDescriptor as : avroSchemas) {
-                as.saveTo(outputDir);
+            for (final TableAvroSchemas tas : tablesAvroSchemas) {
+                tas.saveTo(outputDir);
             }
 
             // Save skemium metadata to the designated output directory
-            MetadataFile.build(spec.commandLine().getParseResult().originalArgs(), avroSchemas).saveTo(outputDir);
+            MetadataFile.build(spec.commandLine().getParseResult().originalArgs(), tablesAvroSchemas).saveTo(outputDir);
         } catch (Exception e) {
             LOG.error("Failed to generate tables schema", e);
             return 1;

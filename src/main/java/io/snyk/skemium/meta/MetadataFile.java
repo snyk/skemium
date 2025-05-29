@@ -3,7 +3,7 @@ package io.snyk.skemium.meta;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.snyk.skemium.avro.TableAvroDescriptor;
+import io.snyk.skemium.avro.TableAvroSchemas;
 import io.snyk.skemium.helpers.Git;
 import io.snyk.skemium.helpers.JSON;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
@@ -51,7 +52,7 @@ public record MetadataFile(
 
     public static final String FILENAME = ".skemium.meta.json";
 
-    public static MetadataFile build(List<String> arguments, List<TableAvroDescriptor> avroSchemas) throws JsonProcessingException {
+    public static MetadataFile build(List<String> arguments, List<TableAvroSchemas> avroSchemas) throws JsonProcessingException {
         final Git.GitInfo gitInfo = Git.tryGetInfo(Path.of("."));
 
         return new MetadataFile(Instant.now(),
@@ -59,12 +60,12 @@ public record MetadataFile(
                 avroSchemas.size(),
                 avroSchemas.stream().collect(Collectors
                         .toMap(
-                                TableAvroDescriptor::identifier,
-                                TableAvroDescriptor::checksum,
+                                TableAvroSchemas::identifier,
+                                TableAvroSchemas::checksum,
                                 BINARY_OPERATOR_NO_DUPLICATES,
                                 TreeMap::new)),
                 DigestUtils.sha256Hex(avroSchemas.stream()
-                        .map(TableAvroDescriptor::checksum)
+                        .map(TableAvroSchemas::checksum)
                         .collect(Collectors.joining())),
                 gitInfo.commit(),
                 gitInfo.branch(),

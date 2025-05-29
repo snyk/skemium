@@ -1,7 +1,7 @@
 package io.snyk.skemium.helpers;
 
 import io.confluent.kafka.schemaregistry.CompatibilityLevel;
-import io.snyk.skemium.avro.TableAvroDescriptor;
+import io.snyk.skemium.avro.TableAvroSchemas;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -14,8 +14,8 @@ class SchemaRegistryTest {
     @Test
     void shouldDetectBackwardIncompatibleSchemaChanges() throws IOException {
         final Path dirPath = Path.of("src", "test", "resources", "schema_change-non_backward_compatible");
-        final TableAvroDescriptor curr = TableAvroDescriptor.loadFrom(dirPath.resolve("current"), "chinook.public.artist");
-        final TableAvroDescriptor next = TableAvroDescriptor.loadFrom(dirPath.resolve("next"), "chinook.public.artist");
+        final TableAvroSchemas curr = TableAvroSchemas.loadFrom(dirPath.resolve("current"), "chinook.public.artist");
+        final TableAvroSchemas next = TableAvroSchemas.loadFrom(dirPath.resolve("next"), "chinook.public.artist");
 
         final SchemaRegistry.CheckCompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
         assertFalse(res.isCompatible());
@@ -39,8 +39,8 @@ class SchemaRegistryTest {
     @Test
     void shouldDetectBackwardCompatibleSchemaChanges() throws IOException {
         final Path dirPath = Path.of("src", "test", "resources", "schema_change-backward_compatible");
-        final TableAvroDescriptor curr = TableAvroDescriptor.loadFrom(dirPath.resolve("current"), "chinook.public.artist");
-        final TableAvroDescriptor next = TableAvroDescriptor.loadFrom(dirPath.resolve("next"), "chinook.public.artist");
+        final TableAvroSchemas curr = TableAvroSchemas.loadFrom(dirPath.resolve("current"), "chinook.public.artist");
+        final TableAvroSchemas next = TableAvroSchemas.loadFrom(dirPath.resolve("next"), "chinook.public.artist");
 
         SchemaRegistry.CheckCompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
         assertTrue(res.isCompatible());
@@ -73,8 +73,8 @@ class SchemaRegistryTest {
     @Test
     void shouldDetectKeyAdded() throws IOException {
         final Path dirPath = Path.of("src", "test", "resources", "schema_change-key_added");
-        final TableAvroDescriptor curr = TableAvroDescriptor.loadFrom(dirPath.resolve("current"), "chinook.public.playlist_track");
-        final TableAvroDescriptor next = TableAvroDescriptor.loadFrom(dirPath.resolve("next"), "chinook.public.playlist_track");
+        final TableAvroSchemas curr = TableAvroSchemas.loadFrom(dirPath.resolve("current"), "chinook.public.playlist_track");
+        final TableAvroSchemas next = TableAvroSchemas.loadFrom(dirPath.resolve("next"), "chinook.public.playlist_track");
 
         final SchemaRegistry.CheckCompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
         assertFalse(res.isCompatible());
@@ -87,8 +87,8 @@ class SchemaRegistryTest {
     @Test
     void shouldDetectKeyRemoved() throws IOException {
         final Path dirPath = Path.of("src", "test", "resources", "schema_change-key_removed");
-        final TableAvroDescriptor curr = TableAvroDescriptor.loadFrom(dirPath.resolve("current"), "chinook.public.playlist_track");
-        final TableAvroDescriptor next = TableAvroDescriptor.loadFrom(dirPath.resolve("next"), "chinook.public.playlist_track");
+        final TableAvroSchemas curr = TableAvroSchemas.loadFrom(dirPath.resolve("current"), "chinook.public.playlist_track");
+        final TableAvroSchemas next = TableAvroSchemas.loadFrom(dirPath.resolve("next"), "chinook.public.playlist_track");
 
         final SchemaRegistry.CheckCompatibilityResult res = SchemaRegistry.checkCompatibility(curr, next, CompatibilityLevel.BACKWARD);
         assertFalse(res.isCompatible());
