@@ -17,6 +17,7 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 import static io.snyk.skemium.helpers.Avro.kafkaConnectSchemaToAvroSchema;
 
@@ -89,7 +90,7 @@ public record TableAvroDescriptor(@Nonnull String identifier,
     /// @param outputDir [Path] to the directory where to save the files. Directory MUST already exist and be writable.
     /// @throws FileNotFoundException
     /// @throws JsonProcessingException
-    public void saveTo(final Path outputDir) throws FileNotFoundException, JsonProcessingException {
+    public void saveTo(@Nonnull final Path outputDir) throws FileNotFoundException, JsonProcessingException {
         LOG.debug("Saving Table Avro Descriptor: {} -> {}", identifier, outputDir);
         final Path keyOutputPath = outputDir.toAbsolutePath().resolve(keyFilename());
         final Path valueOutputPath = outputDir.toAbsolutePath().resolve(valueFilename());
@@ -146,7 +147,7 @@ public record TableAvroDescriptor(@Nonnull String identifier,
     /// @param identifier The identifier of the schema
     /// @return An [TableAvroDescriptor]
     /// @throws IOException
-    public static TableAvroDescriptor loadFrom(final Path inputDir, final String identifier) throws IOException {
+    public static TableAvroDescriptor loadFrom(@Nonnull final Path inputDir, @Nonnull final String identifier) throws IOException {
         final Path keyInputPath = inputDir.toAbsolutePath().resolve(KEY_FILENAME_FMT.formatted(identifier));
         final Path valueInputPath = inputDir.toAbsolutePath().resolve(VALUE_FILENAME_FMT.formatted(identifier));
         final Path envelopeInputPath = inputDir.toAbsolutePath().resolve(ENVELOPE_FILENAME_FMT.formatted(identifier));
@@ -156,15 +157,24 @@ public record TableAvroDescriptor(@Nonnull String identifier,
         if (keyInputPath.toFile().exists()) {
             LOG.trace("Loading KEY Avro Schema: {} <- {}", identifier, keyInputPath);
             keySchema = new Schema.Parser().parse(keyInputPath.toFile());
+            if (!Objects.equals(identifier, keySchema.getNamespace())) {
+                LOG.warn("KEY Avro Schema does not match Table identifier: '{}' != '{}'", keySchema.getNamespace(), identifier);
+            }
         } else {
             LOG.trace("Skip loading KEY Avro Schema: {} == NULL", identifier);
         }
 
         LOG.trace("Loading VALUE Avro Schema: {} <- {}", identifier, valueInputPath);
         final Schema valueSchema = new Schema.Parser().parse(valueInputPath.toFile());
+        if (!Objects.equals(identifier, valueSchema.getNamespace())) {
+            LOG.warn("VALUE Avro Schema does not match Table identifier: '{}' != '{}'", valueSchema.getNamespace(), identifier);
+        }
 
         LOG.trace("Loading ENVELOPE Avro Schema: {} <- {}", identifier, envelopeInputPath);
         final Schema envelopeSchema = new Schema.Parser().parse(envelopeInputPath.toFile());
+        if (!Objects.equals(identifier, envelopeSchema.getNamespace())) {
+            LOG.warn("ENVELOPE Avro Schema does not match Table identifier: '{}' != '{}'", envelopeSchema.getNamespace(), identifier);
+        }
 
         final TableAvroDescriptor res = new TableAvroDescriptor(identifier, keySchema, valueSchema, envelopeSchema);
 
