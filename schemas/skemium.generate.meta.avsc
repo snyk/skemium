@@ -18,12 +18,6 @@
       "items" : "string"
     }
   }, {
-    "name" : "count",
-    "type" : {
-      "type" : "int",
-      "java-class" : "java.lang.Integer"
-    }
-  }, {
     "name" : "schemas",
     "type" : {
       "type" : "map",
@@ -33,6 +27,12 @@
   }, {
     "name" : "sha256",
     "type" : "string"
+  }, {
+    "name" : "count",
+    "type" : {
+      "type" : "int",
+      "java-class" : "java.lang.Integer"
+    }
   }, {
     "name" : "vcsBranch",
     "type" : [ "null", "string" ]
