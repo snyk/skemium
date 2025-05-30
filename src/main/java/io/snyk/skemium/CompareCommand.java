@@ -49,8 +49,9 @@ public class CompareCommand extends BaseCommand {
             defaultValue = "${env:COMPATIBILITY}",
             showDefaultValue = CommandLine.Help.Visibility.ALWAYS,
             description = """
-                    Compatibility Level (values: ${COMPLETION-CANDIDATES} - env: COMPATIBILITY - optional)
-                    See: https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html"""
+                    Compatibility Level (env: COMPATIBILITY - optional)
+                    See: https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html
+                      Values: ${COMPLETION-CANDIDATES}"""
     )
     CompatibilityLevel compatibilityLevel = CompatibilityLevel.BACKWARD;
 

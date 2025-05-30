@@ -112,7 +112,9 @@ public class GenerateCommand extends BaseCommand {
             names = {"--kind"},
             defaultValue = "${env:DB_KIND}",
             showDefaultValue = CommandLine.Help.Visibility.ALWAYS,
-            description = "Database kind (values: ${COMPLETION-CANDIDATES} - env: DB_KIND - optional)"
+            description = """
+                Database kind (env: DB_KIND - optional)
+                  Values: ${COMPLETION-CANDIDATES}"""
     )
     DatabaseKind kind = DatabaseKind.POSTGRES;
 

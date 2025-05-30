@@ -23,7 +23,7 @@ If you make changes to your Database Schema, and want to know if it's going to b
 
 ## `generate` command
 
-The `generate` commands connects to a Database, reads its _Database Schema_ and coverts it to a [CDC] _Avro Schema_,
+The `generate` command connects to a Database, reads its _Database Schema_ and coverts it to a [CDC] _Avro Schema_,
 using [Debezium Avro Serialization].
 
 The output is saved in a user given _output directory_. The directory will contain:
@@ -38,16 +38,19 @@ The output is saved in a user given _output directory_. The directory will conta
 For example, if the database `example` contains 2 tables `user` and `address` in the database schema `public`, the output
 directory will look like:
 
-```
-.skemium.meta.json
-example.public.address.env.avsc
-example.public.address.key.avsc
-example.public.address.sha256
-example.public.address.val.avsc
-example.public.user.env.avsc
-example.public.user.key.avsc
-example.public.user.sha256
-example.public.user.val.avsc
+```shell
+$ tree example_schma_dir/
+
+example_schma_dir/
+├── .skemium.meta.json
+├── example.public.address.env.avsc
+├── example.public.address.key.avsc
+├── example.public.address.sha256
+├── example.public.address.val.avsc
+├── example.public.user.env.avsc
+├── example.public.user.key.avsc
+├── example.public.user.sha256
+└── example.public.user.val.avsc
 ```
 
 ### Help
@@ -70,12 +73,13 @@ converts table schemas to Avro Schemas, stores them in a directory.
 
 Parameters:
       [DIRECTORY_PATH]        Output directory
-                                Default: skemium-20250528-112610
+                                Default: skemium-20250530-155002
 
 Options:
   -d, --database=<dbName>     Database name (env: DB_NAME)
   -h, --hostname=<hostname>   Database hostname (env: DB_HOSTNAME)
-      --kind=<kind>           Database kind (values: POSTGRES - env: DB_KIND - optional)
+      --kind=<kind>           Database kind (env: DB_KIND - optional)
+                                Values: POSTGRES
                                 Default: POSTGRES
   -p, --port=<port>           Database port (env: DB_PORT)
       --password=<password>   Database password (env: DB_PASSWORD)
@@ -90,10 +94,67 @@ Options:
 ```
 </details>
 
+## `compare` command
+
+The `compare` command takes 2 directories (created via `generate`) containing the [CDC] _Avro Schema_ of a Database,
+and compares them applying the given [Schema Compatibility] type.
+The directories are identified as _`CURRENT`_ and _`NEXT`_:
+
+* `CURRENT`: [CDC] Avro Schema of a Database, generated at time `T`
+* `NEXT`: [CDC] Avro Schema of the Database, generated at time `T+1`
+
+`compare` executes a table-by-table [Schema Compatibility] check, and reports on the result.
+Exit Code will be `0` in case of success, `1` otherwise.
+
+### Table discrepancies
+
+Additionally, `compare` reports (via `WARN` logging) if discrepancies of tables (additions/removals)
+can be identified between `CURRENT` and `NEXT`.
+The flag `--ci-mode` can be used to _force_ a failure in case of these discrepancies:
+**this is ideally used in the context of [CI] automations**.
+
+### JSON output
+
+If necessary, the output of `compare` can be stored in a output JSON file, using the `--output` option.
+
+### Help
+
+<details>
+<summary>Run `skemium help compare` for usage instructions</summary>
+
+```shell
+$ skemium help compare
+
+Compares Avro Schemas generated from Tables in a Database
+
+skemium compare [-iv] [-c=<compatibilityLevel>] [-o=<output>] CURR_SCHEMAS_DIR NEXT_SCHEMAS_DIR
+
+Description:
+
+Given 2 directories (CURRENT / NEXT) containing Avro Schemas of Database Tables,
+compares them according to Compatibility Level.
+
+Parameters:
+      CURR_SCHEMAS_DIR    Directory with the CURRENT Database Table schemas
+      NEXT_SCHEMAS_DIR    Directory with the NEXT Database Table schemas
+
+Options:
+  -c, --compatibility=<compatibilityLevel>
+                          Compatibility Level (env: COMPATIBILITY - optional)
+                          See: https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html
+                            Values: NONE, BACKWARD, BACKWARD_TRANSITIVE, FORWARD, FORWARD_TRANSITIVE, FULL, FULL_TRANSITIVE
+                            Default: BACKWARD
+  -i, --ci, --ci-mode     CI mode - Fail when a Table is only detected in one of the two directories (env: CI_MODE - optional)
+                            Default: false
+  -o, --output=<output>   Output file (JSON); overridden if exists (env: OUTPUT_FILE - optional)
+  -v, --verbose           Logging Verbosity - use multiple -v to increase (default: ERROR)
+```
+</details>
 
 ## Logging verbosity
 
-The option `-v | --verbose` controls the logging verbosity. By default, the logging level is `ERROR`.
+The option `-v | --verbose` (availabel for all commands) controls the logging verbosity.
+By default, the logging level is `ERROR`.
 But it can be increased by passing one or more `-v` options, to a maximum level of `TRACE`. The mapping is:
 
 ```
@@ -160,3 +221,5 @@ But I want to especially thank 2 projects for the _core_ of the functionality:
 [Debezium Avro Serialization]: https://debezium.io/documentation/reference/stable/configuration/avro.html
 [JSON Schema]: https://json-schema.org/
 [Protobuf]: https://protobuf.dev/
+[Schema Compatibility]: https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html#compatibility-types
+[CI]: https://www.atlassian.com/continuous-delivery/continuous-integration
