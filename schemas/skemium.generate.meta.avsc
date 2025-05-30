@@ -1,0 +1,46 @@
+{
+  "type" : "record",
+  "name" : "MetadataFile",
+  "namespace" : "io.snyk.skemium.meta",
+  "fields" : [ {
+    "name" : "created_ISO8601",
+    "type" : "string"
+  }, {
+    "name" : "created",
+    "type" : {
+      "type" : "long",
+      "logicalType" : "timestamp-millis"
+    }
+  }, {
+    "name" : "arguments",
+    "type" : {
+      "type" : "array",
+      "items" : "string"
+    }
+  }, {
+    "name" : "count",
+    "type" : {
+      "type" : "int",
+      "java-class" : "java.lang.Integer"
+    }
+  }, {
+    "name" : "schemas",
+    "type" : {
+      "type" : "map",
+      "values" : "string",
+      "java-class" : "java.util.TreeMap"
+    }
+  }, {
+    "name" : "sha256",
+    "type" : "string"
+  }, {
+    "name" : "vcsBranch",
+    "type" : [ "null", "string" ]
+  }, {
+    "name" : "vcsCommit",
+    "type" : [ "null", "string" ]
+  }, {
+    "name" : "vcsTag",
+    "type" : [ "null", "string" ]
+  } ]
+}

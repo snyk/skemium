@@ -1,0 +1,85 @@
+{
+  "type" : "record",
+  "name" : "Result",
+  "namespace" : "io.snyk.skemium.CompareCommand",
+  "fields" : [ {
+    "name" : "currentSchemasDir",
+    "type" : "string"
+  }, {
+    "name" : "nextSchemasDir",
+    "type" : "string"
+  }, {
+    "name" : "compatibilityLevel",
+    "type" : {
+      "type" : "enum",
+      "name" : "CompatibilityLevel",
+      "namespace" : "io.confluent.kafka.schemaregistry",
+      "symbols" : [ "NONE", "BACKWARD", "BACKWARD_TRANSITIVE", "FORWARD", "FORWARD_TRANSITIVE", "FULL", "FULL_TRANSITIVE" ]
+    }
+  }, {
+    "name" : "keyIncompatibilities",
+    "type" : {
+      "type" : "map",
+      "values" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }
+  }, {
+    "name" : "keyIncompatibilitiesTotal",
+    "type" : {
+      "type" : "int",
+      "java-class" : "java.lang.Integer"
+    }
+  }, {
+    "name" : "valueIncompatibilities",
+    "type" : {
+      "type" : "map",
+      "values" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }
+  }, {
+    "name" : "valueIncompatibilitiesTotal",
+    "type" : {
+      "type" : "int",
+      "java-class" : "java.lang.Integer"
+    }
+  }, {
+    "name" : "envelopeIncompatibilities",
+    "type" : {
+      "type" : "map",
+      "values" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }
+  }, {
+    "name" : "envelopeIncompatibilitiesTotal",
+    "type" : {
+      "type" : "int",
+      "java-class" : "java.lang.Integer"
+    }
+  }, {
+    "name" : "incompatibilitiesTotal",
+    "type" : {
+      "type" : "int",
+      "java-class" : "java.lang.Integer"
+    }
+  }, {
+    "name" : "removedTables",
+    "type" : {
+      "type" : "array",
+      "items" : "string",
+      "java-class" : "java.util.Set"
+    }
+  }, {
+    "name" : "addedTables",
+    "type" : {
+      "type" : "array",
+      "items" : "string",
+      "java-class" : "java.util.Set"
+    }
+  } ]
+}

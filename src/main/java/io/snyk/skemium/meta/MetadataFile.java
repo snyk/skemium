@@ -11,6 +11,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -37,15 +38,26 @@ import java.util.stream.Collectors;
 /// @param vcsBranch      Local VCS branch at the time of the generation, if any; `NULL` otherwise.
 /// @param vcsTag         Local VCS tag at the time of the generation, if any; `NULL` otherwise.
 public record MetadataFile(
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "UTC")
-        @JsonProperty("created") Instant created,
-        @JsonProperty("arguments") List<String> arguments,
-        @JsonProperty("count") int schemaCount,
-        @JsonProperty("schemas") TreeMap<String, String> schemas,
-        @JsonProperty("sha256") String checksumSHA256,
-        @JsonProperty("vcsCommit") String vcsCommit,
-        @JsonProperty("vcsBranch") String vcsBranch,
-        @JsonProperty("vcsTag") String vcsTag
+        @JsonFormat(without = {
+                JsonFormat.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS,
+                JsonFormat.Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS,
+        })
+        @JsonProperty(value = "created", required = true, index = 1)
+        Instant created,
+        @JsonProperty(value = "arguments", required = true, index = 2)
+        List<String> arguments,
+        @JsonProperty("count")
+        int schemaCount,
+        @JsonProperty(value = "schemas", required = true, index = 3)
+        TreeMap<String, String> schemas,
+        @JsonProperty(value = "sha256", required = true, index = 4)
+        String checksumSHA256,
+        @JsonProperty("vcsCommit")
+        String vcsCommit,
+        @JsonProperty("vcsBranch")
+        String vcsBranch,
+        @JsonProperty("vcsTag")
+        String vcsTag
 ) {
     private static final Logger LOG = LoggerFactory.getLogger(MetadataFile.class);
 
@@ -53,7 +65,10 @@ public record MetadataFile(
 
     public static final String FILENAME = ".skemium.meta.json";
 
-    public static MetadataFile build(List<String> arguments, List<TableAvroSchemas> avroSchemas) throws JsonProcessingException {
+    public static final Path AVRO_SCHEMA_FILENAME = Path.of("skemium.generate.meta.avsc");
+
+    public static MetadataFile build(@Nonnull List<String> arguments,
+                                     @Nonnull List<TableAvroSchemas> avroSchemas) throws JsonProcessingException {
         final Git.GitInfo gitInfo = Git.tryGetInfo(Path.of("."));
 
         return new MetadataFile(Instant.now(),
@@ -78,7 +93,7 @@ public record MetadataFile(
     /// @param outputDir [Path] to the directory where to save the file. Directory MUST already exist and be writable.
     /// @throws FileNotFoundException
     /// @throws JsonProcessingException
-    public void saveTo(final Path outputDir) throws FileNotFoundException, JsonProcessingException {
+    public void saveTo(@Nonnull final Path outputDir) throws FileNotFoundException, JsonProcessingException {
         final Path fileOutputPath = outputDir.toAbsolutePath().resolve(FILENAME);
 
         LOG.trace("Saving Skemium metadata: {}", fileOutputPath);
@@ -92,10 +107,15 @@ public record MetadataFile(
     /// @param inputDir [Path] to the directory
     /// @return An [MetadataFile]
     /// @throws IOException
-    public static MetadataFile loadFrom(final Path inputDir) throws IOException {
+    public static MetadataFile loadFrom(@Nonnull final Path inputDir) throws IOException {
         final Path fileInputPath = inputDir.toAbsolutePath().resolve(FILENAME);
 
         return JSON.from(fileInputPath.toFile(), MetadataFile.class);
+    }
+
+    @JsonProperty(value = "created_ISO8601", required = true, access = JsonProperty.Access.READ_ONLY, index = 0)
+    public String createdISO8601() {
+        return created.toString();
     }
 
     @JsonIgnore
