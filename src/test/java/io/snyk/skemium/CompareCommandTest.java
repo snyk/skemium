@@ -1,12 +1,16 @@
 package io.snyk.skemium;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.confluent.kafka.schemaregistry.CompatibilityLevel;
+import io.snyk.skemium.CompareCommand.Result;
+import io.snyk.skemium.helpers.Avro;
 import io.snyk.skemium.helpers.JSON;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import picocli.CommandLine;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -67,6 +71,11 @@ class CompareCommandTest {
     }
 
     @Test
+    void refreshCompareResultFileSchema() throws JsonProcessingException, FileNotFoundException {
+        Avro.saveAvroSchemaForType(Result.class, Result.AVRO_SCHEMA_FILENAME);
+    }
+
+    @Test
     public void shouldReportNoIncompatibilitiesWhenComparingLikeForLike() throws IOException {
         // TODO Map logger to stdout/err, if possible
         final CommandLine cmdLine = new CommandLine(new GenerateCommand())
@@ -84,7 +93,7 @@ class CompareCommandTest {
         ));
         FileUtils.copyDirectory(CURR_DIR.toFile(), NEXT_DIR.toFile());
 
-        final CompareCommand.Result res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        final Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
 
         assertEquals(CompatibilityLevel.BACKWARD, res.compatibilityLevel());
         assertEquals(Map.of(
@@ -149,7 +158,7 @@ class CompareCommandTest {
                 NEXT_DIR.toAbsolutePath().toString()
         ));
 
-        final CompareCommand.Result res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        final Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
 
         assertEquals(CompatibilityLevel.BACKWARD, res.compatibilityLevel());
         assertEquals(Map.of(
@@ -210,7 +219,7 @@ class CompareCommandTest {
         ));
 
         // Change is not BACKWARD compatible
-        CompareCommand.Result res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.keyIncompatibilities().get("chinook.public.artist").size());
         assertEquals(2, res.valueIncompatibilitiesTotal());
@@ -221,7 +230,7 @@ class CompareCommandTest {
         assertEquals(Set.of(), res.addedTables());
 
         // Change would be BACKWARD compatible, if it was in reverse (from NEXT to CURR)
-        res = CompareCommand.Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
+        res = Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -229,7 +238,7 @@ class CompareCommandTest {
         assertEquals(Set.of(), res.addedTables());
 
         // Change is FORWARD compatible
-        res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
+        res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -277,7 +286,7 @@ class CompareCommandTest {
         ));
 
         // Change is not BACKWARD compatible
-        CompareCommand.Result res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.keyIncompatibilities().get("chinook.public.artist").size());
         assertEquals(2, res.valueIncompatibilitiesTotal());
@@ -288,7 +297,7 @@ class CompareCommandTest {
         assertEquals(Set.of(), res.addedTables());
 
         // Change would be BACKWARD compatible, if it was in reverse (from NEXT to CURR)
-        res = CompareCommand.Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
+        res = Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -296,7 +305,7 @@ class CompareCommandTest {
         assertEquals(Set.of(), res.addedTables());
 
         // Change is FORWARD compatible
-        res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
+        res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -353,7 +362,7 @@ class CompareCommandTest {
                 NEXT_DIR.toAbsolutePath().toString()
         ));
 
-        final CompareCommand.Result resFromOutputFile = JSON.from(OUTPUT_FILE.toFile(), CompareCommand.Result.class);
+        final Result resFromOutputFile = JSON.from(OUTPUT_FILE.toFile(), Result.class);
         assertEquals(0, resFromOutputFile.keyIncompatibilitiesTotal());
         assertEquals(0, resFromOutputFile.keyIncompatibilities().get("chinook.public.employee").size());
         assertEquals(2, resFromOutputFile.valueIncompatibilitiesTotal());

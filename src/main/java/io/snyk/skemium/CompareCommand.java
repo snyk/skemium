@@ -200,35 +200,44 @@ public class CompareCommand extends BaseCommand {
     /// @param removedTables:             [Set] of Table Avro Schemas that were removed: present in CURRENT but absent from NEXT.
     /// @param addedTables:               [Set] of Table Avro Schemas that were added: absent from CURRENT but present in NEXT.
     record Result(
+            @JsonProperty(required = true, index = 0)
             @Nonnull Path currentSchemasDir,
+            @JsonProperty(required = true, index = 1)
             @Nonnull Path nextSchemasDir,
+            @JsonProperty(required = true, index = 2)
             @Nonnull CompatibilityLevel compatibilityLevel,
+            @JsonProperty(required = true, index = 3)
             @Nonnull Map<String, List<String>> keyIncompatibilities,
+            @JsonProperty(required = true, index = 5)
             @Nonnull Map<String, List<String>> valueIncompatibilities,
+            @JsonProperty(required = true, index = 7)
             @Nonnull Map<String, List<String>> envelopeIncompatibilities,
+            @JsonProperty(required = true, index = 10)
             @Nonnull Set<String> removedTables,
+            @JsonProperty(required = true, index = 11)
             @Nonnull Set<String> addedTables
     ) {
+        public static final Path AVRO_SCHEMA_FILENAME = Path.of("skemium.compare.result.avsc");
 
         /// Sum of all Key Schema incompatibilities identified, across all Tables.
-        @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+        @JsonProperty(access = JsonProperty.Access.READ_ONLY, index = 4)
         public int keyIncompatibilitiesTotal() {
             return keyIncompatibilities.values().stream().mapToInt(List::size).sum();
         }
 
         /// Sum of all Value Schema incompatibilities identified, across all Tables.
-        @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+        @JsonProperty(access = JsonProperty.Access.READ_ONLY, index = 6)
         public int valueIncompatibilitiesTotal() {
             return valueIncompatibilities.values().stream().mapToInt(List::size).sum();
         }
 
         /// Sum of all Envelope Schema incompatibilities identified, across all Tables.
-        @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+        @JsonProperty(access = JsonProperty.Access.READ_ONLY, index = 8)
         public int envelopeIncompatibilitiesTotal() {
             return envelopeIncompatibilities.values().stream().mapToInt(List::size).sum();
         }
 
-        @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+        @JsonProperty(access = JsonProperty.Access.READ_ONLY, index = 9)
         public int incompatibilitiesTotal() {
             return keyIncompatibilitiesTotal() + valueIncompatibilitiesTotal() + envelopeIncompatibilitiesTotal();
         }
