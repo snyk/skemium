@@ -107,7 +107,6 @@ But it can be increased by passing one or more `-v` options, to a maximum level 
 
 # Future features
 
-* [ ] Support for JSON output for `compare` command
 * [ ] Support for additional Databases (MySQL, MariaDB, MongoDB, Oracle, SQL Server, ...): currently only PostgreSQL is supported
 * [ ] Support connecting to GCP CloudSQL databases via
   [dedicated `SocketFactory`](https://github.com/GoogleCloudPlatform/cloud-sql-jdbc-socket-factory)

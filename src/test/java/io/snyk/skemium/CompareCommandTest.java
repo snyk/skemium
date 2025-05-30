@@ -1,6 +1,7 @@
 package io.snyk.skemium;
 
 import io.confluent.kafka.schemaregistry.CompatibilityLevel;
+import io.snyk.skemium.helpers.JSON;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
@@ -25,6 +26,7 @@ class CompareCommandTest {
 
     Path CURR_DIR;
     Path NEXT_DIR;
+    Path OUTPUT_FILE;
 
     @BeforeAll
     static void startDB() {
@@ -37,18 +39,22 @@ class CompareCommandTest {
     }
 
     @BeforeEach
-    public void createTempDir() throws IOException {
+    public void createTempFiles() throws IOException {
         CURR_DIR = Files.createTempDirectory("skemium-test-curr-");
         NEXT_DIR = Files.createTempDirectory("skemium-test-next-");
+        OUTPUT_FILE = Files.createTempFile("skemium-test-compare-result", ".json");
     }
 
     @AfterEach
-    public void deleteTempDir() throws IOException {
+    public void deleteTempFiles() throws IOException {
         if (CURR_DIR != null) {
             FileUtils.deleteDirectory(CURR_DIR.toFile());
         }
         if (NEXT_DIR != null) {
             FileUtils.deleteDirectory(NEXT_DIR.toFile());
+        }
+        if (OUTPUT_FILE != null) {
+            Files.deleteIfExists(OUTPUT_FILE);
         }
     }
 
@@ -253,10 +259,10 @@ class CompareCommandTest {
         // this is a NON BACKWARD COMPATIBLE change
         try (final Connection connection = getConnection()) {
             connection.prepareStatement("""
-                ALTER TABLE chinook.public.artist ADD COLUMN genre VARCHAR(50);
-                UPDATE chinook.public.artist SET genre = 'Neomelodic' WHERE genre IS NULL;
-                ALTER TABLE chinook.public.artist ALTER COLUMN genre SET NOT NULL;
-                """).execute();
+                    ALTER TABLE chinook.public.artist ADD COLUMN genre VARCHAR(50);
+                    UPDATE chinook.public.artist SET genre = 'Neomelodic' WHERE genre IS NULL;
+                    ALTER TABLE chinook.public.artist ALTER COLUMN genre SET NOT NULL;
+                    """).execute();
         }
 
         // Then, generate the new schema for the `artist` table only
@@ -296,5 +302,65 @@ class CompareCommandTest {
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
         assertEquals(Set.of(), res.removedTables());
         assertEquals(Set.of(), res.addedTables());
+    }
+
+    @Test
+    public void shouldReportIncompatibleSchemaChange_SaveToOutputFile() throws IOException, SQLException {
+        // TODO Map logger to stdout/err, if possible
+        final CommandLine generateCLI = new CommandLine(new GenerateCommand())
+                .setOut(new PrintWriter(new StringWriter()))
+                .setErr(new PrintWriter(new StringWriter()));
+
+        // First, generate the schema for the `employee` table only
+        assertEquals(0, generateCLI.execute(
+                "--hostname", POSTGRES_CONTAINER.getHost(),
+                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
+                "--database", TestHelper.DB_NAME,
+                "--username", TestHelper.DB_USER,
+                "--password", TestHelper.DB_PASS,
+                "--table", "employee",
+                CURR_DIR.toAbsolutePath().toString()
+        ));
+
+        // Alter schema of `employee` table: make column `title` not null:
+        // this is a NON BACKWARE COMPATIBLE change
+        try (final Connection connection = getConnection()) {
+            connection.prepareStatement("ALTER TABLE chinook.public.employee ALTER COLUMN title SET NOT NULL").execute();
+        }
+
+        // Then, generate the new schema for the `employee` table only
+        assertEquals(0, generateCLI.execute(
+                "--hostname", POSTGRES_CONTAINER.getHost(),
+                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
+                "--database", TestHelper.DB_NAME,
+                "--username", TestHelper.DB_USER,
+                "--password", TestHelper.DB_PASS,
+                "--table", "employee",
+                NEXT_DIR.toAbsolutePath().toString()
+        ));
+
+        // TODO Map logger to stdout/err, if possible
+        final CommandLine compareCLI = new CommandLine(new CompareCommand())
+                .setOut(new PrintWriter(new StringWriter()))
+                .setErr(new PrintWriter(new StringWriter()));
+
+        // Change is not BACKWARD compatible, so the command is expected to fail (exit == 1).
+        // Output saved to file.
+        assertEquals(1, compareCLI.execute(
+                "--compatibility", CompatibilityLevel.BACKWARD.toString(),
+                "--output", OUTPUT_FILE.toAbsolutePath().toString(),
+                CURR_DIR.toAbsolutePath().toString(),
+                NEXT_DIR.toAbsolutePath().toString()
+        ));
+
+        final CompareCommand.Result resFromOutputFile = JSON.from(OUTPUT_FILE.toFile(), CompareCommand.Result.class);
+        assertEquals(0, resFromOutputFile.keyIncompatibilitiesTotal());
+        assertEquals(0, resFromOutputFile.keyIncompatibilities().get("chinook.public.employee").size());
+        assertEquals(2, resFromOutputFile.valueIncompatibilitiesTotal());
+        assertEquals(2, resFromOutputFile.valueIncompatibilities().get("chinook.public.employee").size());
+        assertEquals(3, resFromOutputFile.envelopeIncompatibilitiesTotal());
+        assertEquals(3, resFromOutputFile.envelopeIncompatibilities().get("chinook.public.employee").size());
+        assertEquals(Set.of(), resFromOutputFile.removedTables());
+        assertEquals(Set.of(), resFromOutputFile.addedTables());
     }
 }

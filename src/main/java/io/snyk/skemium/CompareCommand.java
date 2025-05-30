@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Sets;
 import io.confluent.kafka.schemaregistry.CompatibilityLevel;
 import io.snyk.skemium.avro.TableAvroSchemas;
+import io.snyk.skemium.helpers.JSON;
 import io.snyk.skemium.helpers.SchemaRegistry;
 import io.snyk.skemium.meta.MetadataFile;
 import org.slf4j.Logger;
@@ -18,8 +19,12 @@ import picocli.CommandLine.Spec;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Command(
         name = "compare",
@@ -58,6 +63,13 @@ public class CompareCommand extends BaseCommand {
     )
     Boolean ciMode = false;
 
+    @Option(
+            names = {"-o", "--output"},
+            defaultValue = "${env:OUTPUT_FILE}",
+            description = "Output file (JSON); overridden if exists (env: OUTPUT_FILE - optional)"
+    )
+    Path output = null;
+
     @Parameters(
             arity = "1",
             index = "0",
@@ -82,6 +94,13 @@ public class CompareCommand extends BaseCommand {
 
         try {
             final Result res = Result.build(currSchemasDir, nextSchemasDir, compatibilityLevel);
+
+            if (output != null) {
+                LOG.debug("Writing result to file: {}", output.toAbsolutePath().normalize());
+                try (final PrintWriter out = new PrintWriter(output.toString())) {
+                    out.println(JSON.pretty(res));
+                }
+            }
 
             // Determine if the compatibility check was passed
             boolean checkPassed = true;
@@ -134,6 +153,19 @@ public class CompareCommand extends BaseCommand {
             );
         }
 
+        if (output != null) {
+            final File outputFile = this.output.toFile();
+            if (outputFile.exists()) {
+                if (outputFile.isDirectory()) {
+                    throw new CommandLine.ParameterException(
+                            spec.commandLine(),
+                            "Output file is a directory: " + outputFile.getAbsolutePath()
+                    );
+                }
+                LOG.warn("Output file exists and will be overridden: {}", outputFile.getAbsolutePath());
+            }
+        }
+
         if (currSchemasDirFile.getAbsolutePath().equals(nextSchemasDirFile.getAbsolutePath())) {
             LOG.warn("Comparing a Schema Directory with itself?");
         }
@@ -147,17 +179,25 @@ public class CompareCommand extends BaseCommand {
         LOG.debug("  NEXT    Schema Directory: {} (exists: {})", nextSchemasDir.toAbsolutePath().normalize(), nextSchemasDir.toFile().exists());
         LOG.debug("  Compatibility Level: {}", compatibilityLevel);
         LOG.debug("  CI Mode: {}", ciMode);
+        LOG.debug("Output");
+        if (output != null) {
+            LOG.debug("  File: {} (exists: {})", output.toAbsolutePath().normalize(), output.toFile().exists());
+        } else {
+            LOG.debug("  Standard Output");
+        }
+    }
+
     /// Describes the result of running the `compare` command.
     /// It's left to the calling logic to decide when to fail/succeed the actual CLI command.
     ///
-    /// @param currentSchemasDir [Path] to the directory containing the CURRENT Table Schemas compared.
-    /// @param nextSchemasDir [Path] to the directory containing the NEXT Table Schemas compared.
-    /// @param compatibilityLevel [CompatibilityLevel] used during the comparison.
-    /// @param keyIncompatibilities: [Map] of Table Avro Schemas identifiers, to [List] of Key Schema incompatibilities.
-    /// @param valueIncompatibilities: [Map] of Table Avro Schemas identifiers, to [List] of Value Schema incompatibilities.
+    /// @param currentSchemasDir          [Path] to the directory containing the CURRENT Table Schemas compared.
+    /// @param nextSchemasDir             [Path] to the directory containing the NEXT Table Schemas compared.
+    /// @param compatibilityLevel         [CompatibilityLevel] used during the comparison.
+    /// @param keyIncompatibilities:      [Map] of Table Avro Schemas identifiers, to [List] of Key Schema incompatibilities.
+    /// @param valueIncompatibilities:    [Map] of Table Avro Schemas identifiers, to [List] of Value Schema incompatibilities.
     /// @param envelopeIncompatibilities: [Map] of Table Avro Schemas identifiers, to [List] of Envelope Schema incompatibilities.
-    /// @param removedTables: [Set] of Table Avro Schemas that were removed: present in CURRENT but absent from NEXT.
-    /// @param addedTables: [Set] of Table Avro Schemas that were added: absent from CURRENT but present in NEXT.
+    /// @param removedTables:             [Set] of Table Avro Schemas that were removed: present in CURRENT but absent from NEXT.
+    /// @param addedTables:               [Set] of Table Avro Schemas that were added: absent from CURRENT but present in NEXT.
     record Result(
             @Nonnull Path currentSchemasDir,
             @Nonnull Path nextSchemasDir,
