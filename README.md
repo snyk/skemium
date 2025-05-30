@@ -105,13 +105,6 @@ But it can be increased by passing one or more `-v` options, to a maximum level 
 -vvvvv... -> TRACE
 ```
 
-# TODOs
-
-* Implement `compare` command
-* Support optional `compare` options:
-  * Ignore tables present only in _new_ schema (i.e. created tables)
-  * Ignore tables present only in _old_ schema (i.e. deleted tables)
-
 # Future features
 
 * [ ] Support for JSON output for `compare` command

@@ -13,7 +13,7 @@ import java.io.IOException;
 @Command(
         subcommands = {
                 GenerateCommand.class,
-//                CompareCommand.class,
+                CompareCommand.class,
                 CommandLine.HelpCommand.class
         },
         headerHeading = "%nUsage:%n",

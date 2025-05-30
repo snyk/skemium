@@ -159,7 +159,7 @@ public class GenerateCommand extends BaseCommand {
             // Save skemium metadata to the designated output directory
             MetadataFile.build(spec.commandLine().getParseResult().originalArgs(), tablesAvroSchemas).saveTo(outputDir);
         } catch (Exception e) {
-            LOG.error("Failed to generate tables schema", e);
+            LOG.error("Failed to generate Database Tables Schemas", e);
             return 1;
         }
         return 0;

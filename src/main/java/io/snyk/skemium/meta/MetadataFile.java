@@ -1,6 +1,7 @@
 package io.snyk.skemium.meta;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.snyk.skemium.avro.TableAvroSchemas;
@@ -95,5 +96,17 @@ public record MetadataFile(
         final Path fileInputPath = inputDir.toAbsolutePath().resolve(FILENAME);
 
         return JSON.from(fileInputPath.toFile(), MetadataFile.class);
+    }
+
+    @JsonIgnore
+    /// Shorthand to get to the keys of the [#schemas] map.
+    public Set<String> getTableSchemasIdentifiers() {
+        return schemas.keySet();
+    }
+
+    @JsonIgnore
+    /// Shorthand to check if a [TableAvroSchemas] with the given identifier is present.
+    public boolean hasTableSchemas(String identifier) {
+        return schemas.containsKey(identifier);
     }
 }
