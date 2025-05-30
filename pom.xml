@@ -51,7 +51,7 @@
     <ver.avro>1.12.0</ver.avro>
     <ver.commons-codec>1.18.0</ver.commons-codec>
     <ver.debezium>3.0.8.Final</ver.debezium>
-    <ver.jackson>2.18.4</ver.jackson>
+    <ver.jackson>2.19.0</ver.jackson>
     <ver.jgit>7.2.1.202505142326-r</ver.jgit>
     <ver.junit-jupiter>5.11.4</ver.junit-jupiter>
     <ver.kafka-connect-avro-converter>7.8.0</ver.kafka-connect-avro-converter>
@@ -176,6 +176,12 @@
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>${ver.jackson}</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-avro -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-avro</artifactId>
       <version>${ver.jackson}</version>
     </dependency>
 
