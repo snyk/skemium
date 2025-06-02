@@ -2,11 +2,8 @@ package io.snyk.skemium.db.postgres;
 
 import io.debezium.config.Configuration;
 import io.debezium.relational.TableSchema;
-import io.snyk.skemium.TestHelper;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import io.snyk.skemium.WithPostgresContainer;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.util.List;
 import java.util.Map;
@@ -16,25 +13,14 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PostgresTableSchemaFetcherTest {
-    static PostgreSQLContainer<?> POSTGRES_CONTAINER = TestHelper.initPostgresContainer();
-
-    @BeforeAll
-    static void startDB() {
-        POSTGRES_CONTAINER.start();
-    }
-
-    @AfterAll
-    static void stopDB() {
-        POSTGRES_CONTAINER.stop();
-    }
+class PostgresTableSchemaFetcherTest extends WithPostgresContainer {
 
     @Test
     void shouldFetchAllTableSchemas() throws Exception {
-        final Configuration config = TestHelper.createPostgresContainerConfiguration(POSTGRES_CONTAINER);
+        final Configuration config = createPostgresContainerConfiguration(POSTGRES_CONTAINER);
 
         try (final PostgresTableSchemaFetcher fetcher = new PostgresTableSchemaFetcher(config)) {
-            final List<TableSchema> tableSchemas = fetcher.fetch(TestHelper.DB_NAME, null, null, null);
+            final List<TableSchema> tableSchemas = fetcher.fetch(DB_NAME, null, null, null);
 
             List<String> expectedTableSchemaIds = List.of(
                     "chinook.public.album",
@@ -60,10 +46,10 @@ class PostgresTableSchemaFetcherTest {
 
     @Test
     void shouldFetchSomeTableSchemas() throws Exception {
-        final Configuration config = TestHelper.createPostgresContainerConfiguration(POSTGRES_CONTAINER);
+        final Configuration config = createPostgresContainerConfiguration(POSTGRES_CONTAINER);
 
         try (final PostgresTableSchemaFetcher fetcher = new PostgresTableSchemaFetcher(config)) {
-            final List<TableSchema> tableSchemas = fetcher.fetch(TestHelper.DB_NAME, Set.of("public"), Set.of("customer", "invoice"), null);
+            final List<TableSchema> tableSchemas = fetcher.fetch(DB_NAME, Set.of("public"), Set.of("customer", "invoice"), null);
 
             List<String> expectedTableSchemaIds = List.of(
                     "chinook.public.customer",
@@ -78,10 +64,10 @@ class PostgresTableSchemaFetcherTest {
 
     @Test
     void shouldExcludeSomeColumns() throws Exception {
-        final Configuration config = TestHelper.createPostgresContainerConfiguration(POSTGRES_CONTAINER);
+        final Configuration config = createPostgresContainerConfiguration(POSTGRES_CONTAINER);
 
         try (final PostgresTableSchemaFetcher fetcher = new PostgresTableSchemaFetcher(config)) {
-            final List<TableSchema> tableSchemas = fetcher.fetch(TestHelper.DB_NAME, null,
+            final List<TableSchema> tableSchemas = fetcher.fetch(DB_NAME, null,
                     Set.of("customer", "album", "artist"),
                     Set.of(
                             "public.customer.first_name", "public.customer.last_name",
