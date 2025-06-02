@@ -2,10 +2,7 @@ package io.snyk.skemium;
 
 import io.snyk.skemium.avro.TableAvroSchemas;
 import io.snyk.skemium.meta.MetadataFile;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import picocli.CommandLine;
@@ -37,10 +34,14 @@ public class GenerateCommandTest {
 
     @BeforeEach
     public void createTempDir() throws IOException {
+        TEMP_DIR = Files.createTempDirectory("skemium-test-");
+    }
+
+    @AfterEach
+    public void deleteTempDir() throws IOException {
         if (TEMP_DIR != null) {
             FileUtils.deleteDirectory(TEMP_DIR.toFile());
         }
-        TEMP_DIR = Files.createTempDirectory("skemium-test-");
     }
 
     @Test
