@@ -33,7 +33,7 @@ The output is saved in a user given _output directory_. The directory will conta
   * _Table Value_ schema file (`EXTENSION = .val.avsc`)
   * _Table Envelope_ schema file (`EXTENSION = .env.avsc`)
   * The checksum of all 3 schema files above (`EXTENSION = .sha256`)
-* A metadata file named `.skemium.meta.json`
+* A metadata file named `.skemium.meta.json` ([schema](#generated-avro-schemas-metadata-file))
 
 For example, if the database `example` contains 2 tables `user` and `address` in the database schema `public`, the output
 directory will look like:
@@ -115,7 +115,7 @@ The flag `--ci-mode` can be used to _force_ a failure in case of these discrepan
 
 ### JSON output
 
-If necessary, the output of `compare` can be stored in a output JSON file, using the `--output` option.
+If necessary, the output of `compare` can be stored in a output JSON file, using the `--output` option ([schema](#avro-schemas-comparison-result)).
 
 ### Help
 
@@ -165,6 +165,25 @@ But it can be increased by passing one or more `-v` options, to a maximum level 
 -vvvv     -> TRACE
 -vvvvv... -> TRACE
 ```
+
+## Skemium's schemas
+
+In a _kinda_ meta twist, Skemium command outputs _also_ have their own schemas.
+
+### Generated Avro Schemas metadata file
+
+The output of the command `generate` includes the _metadata_ file `.skemium.meta.json`.
+This summarises the output of the command, information about the moment in time, the local repository, and more.
+
+The schema for this file is at [<prj_root>/schemas/skemium.generate.meta.avsc](./schemas/skemium.generate.meta.avsc).
+
+### Avro Schemas comparison result
+
+The `compare` command can optionally save the result to an `--output` file.
+This summarises what was compared, what [Schema Compatibility] was applied,
+and what issues (if any) were identified by the comparison.
+
+The schema for this file is at [<prj_root>/schemas/skemium.compare.result.avsc](./schemas/skemium.compare.result.avsc).
 
 # Interested in contributing?
 
