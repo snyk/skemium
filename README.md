@@ -12,12 +12,114 @@ Leveraging [Debezium] and [Schema Registry] own codebases, each Table of a Datab
 * _Value_ [Avro] schema: describes each Row of the Table
 * _Envelope_ [Avro] schema: wrapper for the _Value_, used by Debezium to realize [CDC] when Producing to a Topic
 
-When producing, [Debezium CDC Source Connector] uses the _Key_ and the _Envelope_ schemas when producing to a Topic.
+[Debezium CDC Source Connector] uses the _Key_ and the _Envelope_ schemas when producing to a Topic:
+the former is used for the [Message _Key_][Kafka Message Key], the latter for the Message _Payload_.
+
 **Skemium** leverages those schemas to compare between evolutions of the originating Database Schema,
 and identifies compatibility issues executing the comparison logic implemented by [Schema Registry].
 
-If you make changes to your Database Schema, and want to know if it's going to break your Debezium CDC production,
-`skemium` is the tool for you.
+**If you make changes to your Database Schema, and want to know if it's going to break your Debezium CDC production,
+`skemium` is the tool for you.**
+
+# Background
+
+In our experience, the way [Debezium] works can catch users off guard in 2 major ways:
+
+1. Making changes to the _source_ Database Schema in ways that break [Schema Compatibility]
+2. Non-zero amount of time between making changes to the _source_ Database Schema, and that change being _captured_
+   by Debezium and published to [Schema Registry]
+
+**Avoiding the first is made much harder by the second!**
+
+## Delayed schema publishing
+
+There is sometimes confusion between “making a DB Schema” vs “making a [Schema Registry] Schema” change:
+
+* the former happen when developers apply changes to their RDBMS: usually, before their application code start relying on the new schema
+* the latter happens when data is actually updated into one of the changed tables:
+  1. Debezium detects it (reading the [RDBMS WAL] and the `DESCRIBE TABLE` command)
+  2. Debezium's `Producer` attempts to create a new Schema version for the associated [schema subject]
+     1. _either_ fails if the change violates the configured [Schema Compatibility]
+     2. _or_ succeeds in publishing a new version for the [schema subject] creation was successful 
+  3. Debezium's `Producer` resumes producing to the related Kafka Topic
+
+When 2.1. above happens, Debezium stops producing and in turns stops consuming the [RDBMS WAL]:
+
+1. Traffic from the RDBMS to Kafka halts (bad!)
+2. RDBMS storage fills up, as the WAL is not getting flushed (worse!)
+
+![Debezium "delayed schema publishing"](./images/debezium_delayed_schema_publishing.jpg)
+
+## The role of `skemium`
+
+Skemium's primary objective is to target this issue and empower developers to instrument their CI process
+to detect a _breakage_ of a [CDC] [schema subject] **as early as possible**.
+
+Ideally, when a PR is submitted and before any RDBMS schema has been changed in production, it should be possible to:
+
+* spin up a local instance of the RDBMS
+* apply the latest _desired_ DB Schema
+* execute `skemium generate` to obtain the corresponding Avro Schemas
+  (i.e. what would eventually land in [Schema Registry])
+* execute `skemium compare` to compare an existing copy of the Avro Schemas,
+  with the new one, applying the desired [Schema Compatibility]
+
+![Example CI that would detect "schema breakage" sooner](./images/skemium_schema_breakage_CI_detection.jpg)
+
+## What if a **_Breaking Schema Change_** is necessary?
+
+Sometimes is going to be inevitable: you _need_ to make a change in your Database Schema,
+and a new version of the [schema subject] must be released - a version that breaks [Schema Compatibility].
+
+This is beyond the scope of Skemium (for now?), but in those situations
+what you _can_ do is something along the lines of:
+
+* Make a coordinated plan with Consumer Services of the [CDC] Topic
+* Temporarily disable [Schema Compatibility] in [Schema Registry]
+* Let [Debezium] publish a new [schema subject] version
+* Restore [Schema Compatibility]
+
+The details will depend on your specific circumstances, and your mileage may vary `¯\_(ツ)_/¯`.
+
+## Generating the _correct_ Avro Schema
+
+Skemium **does not** implement its own schema extraction or serialization logic: it relies instead on the source code
+of [Debezium] and [Schema Registry]. Specifically, the following 2 packages do the bulk of the work:
+
+```xml
+<!-- https://mvnrepository.com/artifact/io.debezium/debezium-core -->
+<dependency>
+  <groupId>io.debezium</groupId>
+  <artifactId>debezium-core</artifactId>
+  <version>${ver.debezium}</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/io.confluent/kafka-connect-avro-converter -->
+<dependency>
+  <groupId>io.confluent</groupId>
+  <artifactId>kafka-connect-avro-converter</artifactId>
+  <version>${ver.kafka-connect-avro-converter}</version>
+</dependency>
+```
+
+To dig deeper, please look at the [`pom.xml`](./pom.xml).
+
+### Key classes "borrowed" 
+
+Skemium design brings together [Debezium][Debezium source code] and
+[Schema Registry][Schema Registry source code] codebases, using the Apache [Avro] codebase as _lingua franca_: 
+
+* `TableSchemaFetcher` extracts a `List<io.debezium.relational.TableSchema>`, using the Debezium's
+  RDBMS-specific connector source code to connect and query the DB schema
+* A `TableAvroSchemas` is created for each `io.debezium.relational.TableSchema`, invoking the provided methods
+  that extract _Key_, _Value_ and _Envelope_ as `org.apache.kafka.connect.data.Schema`
+* Each `org.apache.kafka.connect.data.Schema` is converted to `io.confluent.kafka.schemaregistry.avro.AvroSchema` via
+  the provided constructor
+* `io.confluent.kafka.schemaregistry.CompatibilityChecker` is used to compare current and next
+  versions of `io.confluent.kafka.schemaregistry.avro.AvroSchema`,
+  applying the desired `io.confluent.kafka.schemaregistry.CompatibilityLevel` 
+
+This gives us confidence that the generation of the Avro Schema, as well as the compatibility check, are the exact
+same that Debezium will apply in production.
 
 # Usage
 
@@ -252,10 +354,12 @@ But I want to especially thank 2 projects for the _core_ of the functionality:
 **Made with 💜 by Snyk**
 
 [Debezium]: https://debezium.io/
+[Debezium source code]: https://github.com/debezium/debezium
 [CDC]: https://en.wikipedia.org/wiki/Change_data_capture
 [Avro]: https://avro.apache.org/
 [Debezium CDC Source Connector]: https://debezium.io/documentation/reference/stable/connectors/index.html
 [Schema Registry]: https://docs.confluent.io/platform/6.2/schema-registry/index.html
+[Schema Registry source code]: https://github.com/confluentinc/schema-registry
 [Debezium Avro Serialization]: https://debezium.io/documentation/reference/stable/configuration/avro.html
 [JSON Schema]: https://json-schema.org/
 [Protobuf]: https://protobuf.dev/
@@ -263,3 +367,6 @@ But I want to especially thank 2 projects for the _core_ of the functionality:
 [CI]: https://www.atlassian.com/continuous-delivery/continuous-integration
 [asdf]: https://asdf-vm.com/
 [GraalVM]: https://www.graalvm.org/
+[Kafka Message Key]: https://www.confluent.io/learn/kafka-message-key/
+[RDBMS WAL]: https://debezium.io/documentation/reference/stable/connectors/postgresql.html#how-the-postgresql-connector-works
+[schema subject]: https://developer.confluent.io/courses/schema-registry/schema-subjects/
