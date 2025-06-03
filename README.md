@@ -166,7 +166,9 @@ But it can be increased by passing one or more `-v` options, to a maximum level 
 -vvvvv... -> TRACE
 ```
 
-# Future features
+# Interested in contributing?
+
+Here are some major features that we haven't had time to tackle yet:
 
 * [ ] Support for additional Databases (MySQL, MariaDB, MongoDB, Oracle, SQL Server, ...): currently only PostgreSQL is supported
 * [ ] Support connecting to GCP CloudSQL databases via
@@ -177,7 +179,20 @@ But it can be increased by passing one or more `-v` options, to a maximum level 
 * [ ] Support for _generating_ and _comparing_ [JSON Schema] 
 * [ ] Support for _generating_ and _comparing_ [Protobuf] schemas 
 
+Of course, small contributions and bugfixes are also _very_ welcome.
+
 # Development
+
+## Requirements
+
+* Maven 3.9+
+* JDK 21+
+
+We recommend using [asdf] to setup your local development, as it makes it very easy to get set up:
+
+```shell
+asdf install
+```
 
 ## Build & Test
 
@@ -185,13 +200,17 @@ But it can be increased by passing one or more `-v` options, to a maximum level 
 $ mvn clean package
 ```
 
-## Package Uber-JAR
+### Package Uber-JAR
 
 ```shell
 $ mvn clean package assembly:single -DskipTests
 ```
 
-## Package Native Binary
+### Package Native Binary
+
+> [!NOTE]
+> For this option, you need to use [GraalVM]. If you are using [asdf], edit the `.tools-versions` file and uncomment
+> the line to switch on `oracle-graalvm`; then, `asdf install`.
 
 ```shell
 $ mvn clean package native:compile-no-fork -DskipTests
@@ -223,3 +242,5 @@ But I want to especially thank 2 projects for the _core_ of the functionality:
 [Protobuf]: https://protobuf.dev/
 [Schema Compatibility]: https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html#compatibility-types
 [CI]: https://www.atlassian.com/continuous-delivery/continuous-integration
+[asdf]: https://asdf-vm.com/
+[GraalVM]: https://www.graalvm.org/
