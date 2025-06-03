@@ -1,19 +1,23 @@
 package io.snyk.skemium;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.confluent.kafka.schemaregistry.CompatibilityLevel;
+import io.snyk.skemium.CompareCommand.Result;
+import io.snyk.skemium.helpers.Avro;
 import io.snyk.skemium.helpers.JSON;
-import org.junit.jupiter.api.*;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import picocli.CommandLine;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -21,22 +25,10 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class CompareCommandTest {
-    static PostgreSQLContainer<?> POSTGRES_CONTAINER = TestHelper.initPostgresContainer();
-
+class CompareCommandTest extends WithPostgresContainer {
     Path CURR_DIR;
     Path NEXT_DIR;
     Path OUTPUT_FILE;
-
-    @BeforeAll
-    static void startDB() {
-        POSTGRES_CONTAINER.start();
-    }
-
-    @AfterAll
-    static void stopDB() {
-        POSTGRES_CONTAINER.stop();
-    }
 
     @BeforeEach
     public void createTempFiles() throws IOException {
@@ -58,12 +50,9 @@ class CompareCommandTest {
         }
     }
 
-    private static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(
-                POSTGRES_CONTAINER.getJdbcUrl(),
-                POSTGRES_CONTAINER.getUsername(),
-                POSTGRES_CONTAINER.getPassword()
-        );
+    @Test
+    void refreshCompareResultFileSchema() throws JsonProcessingException, FileNotFoundException {
+        Avro.saveAvroSchemaForType(Result.class, Result.AVRO_SCHEMA_FILENAME);
     }
 
     @Test
@@ -75,16 +64,16 @@ class CompareCommandTest {
 
         assertEquals(0, cmdLine.execute(
                 "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
-                "--database", TestHelper.DB_NAME,
-                "--username", TestHelper.DB_USER,
-                "--password", TestHelper.DB_PASS,
+                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
+                "--database", DB_NAME,
+                "--username", DB_USER,
+                "--password", DB_PASS,
                 "--table", "customer,genre,track,playlist,invoice,employee,album,artist",
                 CURR_DIR.toAbsolutePath().toString()
         ));
         FileUtils.copyDirectory(CURR_DIR.toFile(), NEXT_DIR.toFile());
 
-        final CompareCommand.Result res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        final Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
 
         assertEquals(CompatibilityLevel.BACKWARD, res.compatibilityLevel());
         assertEquals(Map.of(
@@ -131,25 +120,25 @@ class CompareCommandTest {
         // CURR to have: customer, genre, track, playlist
         assertEquals(0, cmdLine.execute(
                 "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
-                "--database", TestHelper.DB_NAME,
-                "--username", TestHelper.DB_USER,
-                "--password", TestHelper.DB_PASS,
+                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
+                "--database", DB_NAME,
+                "--username", DB_USER,
+                "--password", DB_PASS,
                 "--table", "customer,genre,track,playlist",
                 CURR_DIR.toAbsolutePath().toString()
         ));
         // NEXT to have: genre, track, invoice, employee
         assertEquals(0, cmdLine.execute(
                 "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
-                "--database", TestHelper.DB_NAME,
-                "--username", TestHelper.DB_USER,
-                "--password", TestHelper.DB_PASS,
+                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
+                "--database", DB_NAME,
+                "--username", DB_USER,
+                "--password", DB_PASS,
                 "--table", "genre,track,invoice,employee",
                 NEXT_DIR.toAbsolutePath().toString()
         ));
 
-        final CompareCommand.Result res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        final Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
 
         assertEquals(CompatibilityLevel.BACKWARD, res.compatibilityLevel());
         assertEquals(Map.of(
@@ -184,10 +173,10 @@ class CompareCommandTest {
         // First, generate the schema for the `artist` table only
         assertEquals(0, cmdLine.execute(
                 "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
-                "--database", TestHelper.DB_NAME,
-                "--username", TestHelper.DB_USER,
-                "--password", TestHelper.DB_PASS,
+                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
+                "--database", DB_NAME,
+                "--username", DB_USER,
+                "--password", DB_PASS,
                 "--table", "artist",
                 CURR_DIR.toAbsolutePath().toString()
         ));
@@ -201,16 +190,16 @@ class CompareCommandTest {
         // Then, generate the new schema for the `artist` table only
         assertEquals(0, cmdLine.execute(
                 "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
-                "--database", TestHelper.DB_NAME,
-                "--username", TestHelper.DB_USER,
-                "--password", TestHelper.DB_PASS,
+                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
+                "--database", DB_NAME,
+                "--username", DB_USER,
+                "--password", DB_PASS,
                 "--table", "artist",
                 NEXT_DIR.toAbsolutePath().toString()
         ));
 
         // Change is not BACKWARD compatible
-        CompareCommand.Result res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.keyIncompatibilities().get("chinook.public.artist").size());
         assertEquals(2, res.valueIncompatibilitiesTotal());
@@ -221,7 +210,7 @@ class CompareCommandTest {
         assertEquals(Set.of(), res.addedTables());
 
         // Change would be BACKWARD compatible, if it was in reverse (from NEXT to CURR)
-        res = CompareCommand.Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
+        res = Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -229,7 +218,7 @@ class CompareCommandTest {
         assertEquals(Set.of(), res.addedTables());
 
         // Change is FORWARD compatible
-        res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
+        res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -247,10 +236,10 @@ class CompareCommandTest {
         // First, generate the schema for the `artist` table only
         assertEquals(0, cmdLine.execute(
                 "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
-                "--database", TestHelper.DB_NAME,
-                "--username", TestHelper.DB_USER,
-                "--password", TestHelper.DB_PASS,
+                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
+                "--database", DB_NAME,
+                "--username", DB_USER,
+                "--password", DB_PASS,
                 "--table", "artist",
                 CURR_DIR.toAbsolutePath().toString()
         ));
@@ -268,16 +257,16 @@ class CompareCommandTest {
         // Then, generate the new schema for the `artist` table only
         assertEquals(0, cmdLine.execute(
                 "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
-                "--database", TestHelper.DB_NAME,
-                "--username", TestHelper.DB_USER,
-                "--password", TestHelper.DB_PASS,
+                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
+                "--database", DB_NAME,
+                "--username", DB_USER,
+                "--password", DB_PASS,
                 "--table", "artist",
                 NEXT_DIR.toAbsolutePath().toString()
         ));
 
         // Change is not BACKWARD compatible
-        CompareCommand.Result res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.keyIncompatibilities().get("chinook.public.artist").size());
         assertEquals(2, res.valueIncompatibilitiesTotal());
@@ -288,7 +277,7 @@ class CompareCommandTest {
         assertEquals(Set.of(), res.addedTables());
 
         // Change would be BACKWARD compatible, if it was in reverse (from NEXT to CURR)
-        res = CompareCommand.Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
+        res = Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -296,7 +285,7 @@ class CompareCommandTest {
         assertEquals(Set.of(), res.addedTables());
 
         // Change is FORWARD compatible
-        res = CompareCommand.Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
+        res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -314,10 +303,10 @@ class CompareCommandTest {
         // First, generate the schema for the `employee` table only
         assertEquals(0, generateCLI.execute(
                 "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
-                "--database", TestHelper.DB_NAME,
-                "--username", TestHelper.DB_USER,
-                "--password", TestHelper.DB_PASS,
+                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
+                "--database", DB_NAME,
+                "--username", DB_USER,
+                "--password", DB_PASS,
                 "--table", "employee",
                 CURR_DIR.toAbsolutePath().toString()
         ));
@@ -331,10 +320,10 @@ class CompareCommandTest {
         // Then, generate the new schema for the `employee` table only
         assertEquals(0, generateCLI.execute(
                 "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(TestHelper.POSTGRES_DEFAULT_PORT).toString(),
-                "--database", TestHelper.DB_NAME,
-                "--username", TestHelper.DB_USER,
-                "--password", TestHelper.DB_PASS,
+                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
+                "--database", DB_NAME,
+                "--username", DB_USER,
+                "--password", DB_PASS,
                 "--table", "employee",
                 NEXT_DIR.toAbsolutePath().toString()
         ));
@@ -353,7 +342,7 @@ class CompareCommandTest {
                 NEXT_DIR.toAbsolutePath().toString()
         ));
 
-        final CompareCommand.Result resFromOutputFile = JSON.from(OUTPUT_FILE.toFile(), CompareCommand.Result.class);
+        final Result resFromOutputFile = JSON.from(OUTPUT_FILE.toFile(), Result.class);
         assertEquals(0, resFromOutputFile.keyIncompatibilitiesTotal());
         assertEquals(0, resFromOutputFile.keyIncompatibilities().get("chinook.public.employee").size());
         assertEquals(2, resFromOutputFile.valueIncompatibilitiesTotal());
