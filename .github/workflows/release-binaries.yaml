@@ -18,10 +18,9 @@ jobs:
           - on: ubuntu-24.04
             arch: x86_64
             os: linux
-          # TODO Enable once the repository is public
-          #- on: ubuntu-24.04-arm
-          #  arch: aarch64
-          #  os: linux
+          - on: ubuntu-24.04-arm
+            arch: aarch64
+            os: linux
           - on: macos-13
             arch: x86_64
             os: macos
