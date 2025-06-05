@@ -38,6 +38,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache: maven
           native-image-job-reports: true
+      - name: GraalVM supported '-march' options
+        run: native-image -march=list
       - name: Package Binary
         run: mvn -B package native:compile-no-fork -DskipTests
       - name: Capture artifact metadata
