@@ -347,7 +347,7 @@
             <!-- See: https://docs.oracle.com/en/graalvm/jdk/21/docs/reference-manual/native-image/overview/Options/#build-options -->
             <buildArgs>
               <buildArg>-O3</buildArg>
-              <buildArg>-march=native</buildArg>
+              <buildArg>-march=compatibility</buildArg>
               <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
               <buildArg>-H:IncludeResources=logback.xml|META-INF/MANIFEST.MF</buildArg>
             </buildArgs>

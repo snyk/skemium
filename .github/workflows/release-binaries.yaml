@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  pull_request:
+    branches: [ main ]
 
 permissions:
   contents: write
@@ -38,6 +40,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache: maven
           native-image-job-reports: true
+      - name: GraalVM supported '-march' options
+        run: native-image -march=list
       - name: Package Binary
         run: mvn -B package native:compile-no-fork -DskipTests
       - name: Capture artifact metadata
@@ -46,10 +50,10 @@ jobs:
           echo "proj_ver=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
           echo "os_name=$(mvn help:evaluate -Dexpression=os.detected.name -q -DforceStdout)" >> $GITHUB_ENV
           echo "os_arch=$(mvn help:evaluate -Dexpression=os.detected.arch -q -DforceStdout)" >> $GITHUB_ENV
-      - name: Release Binary
-        uses: softprops/action-gh-release@v2
-        if: github.ref_type == 'tag'
-        with:
-          generate_release_notes: true
-          files: |
-            target/${{ env.proj_name }}-${{ env.proj_ver  }}-${{ env.os_name }}-${{ env.os_arch }}
+#      - name: Release Binary
+#        uses: softprops/action-gh-release@v2
+#        if: github.ref_type == 'tag'
+#        with:
+#          generate_release_notes: true
+#          files: |
+#            target/${{ env.proj_name }}-${{ env.proj_ver  }}-${{ env.os_name }}-${{ env.os_arch }}
