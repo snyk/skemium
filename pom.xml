@@ -348,8 +348,6 @@
             <buildArgs>
               <buildArg>-O3</buildArg>
               <buildArg>-march=compatibility</buildArg>
-              <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
-              <buildArg>-H:IncludeResources=logback.xml|META-INF/MANIFEST.MF</buildArg>
             </buildArgs>
             <mainClass>${const.mainClass}</mainClass>
           </configuration>

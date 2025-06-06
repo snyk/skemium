@@ -1,0 +1,13 @@
+{
+  "globs": [
+    {
+      "glob": "io/debezium/connector/postgresql/build.version"
+    },
+    {
+      "glob": "META-INF/MANIFEST.MF"
+    },
+    {
+      "glob": "logback.xml"
+    }
+  ]
+}
