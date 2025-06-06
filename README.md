@@ -123,6 +123,18 @@ same that Debezium will apply in production.
 
 # Usage
 
+## Binaries
+
+Skemium can be [compiled from source](#development), but for convenience we
+[release binaries](https://github.com/snyk/skemium/releases):
+
+* `skemium-${VER}-jar-with-dependencies`:
+  an [_uber jar_](https://support.sonatype.com/hc/en-us/articles/28958118202131-What-is-an-uber-jar),
+  easy to use in an environment where a JRE is present
+* `skemium-${VER}-${OS}-${ARCH}`: native binary, generated via [GraalVM] (see [below](#package-native-binary))
+
+All binaries are generated when a new _tag_ is pushed to the `main` branch.
+
 ## `generate` command
 
 The `generate` command connects to a Database, reads its _Database Schema_ and coverts it to a [CDC] _Avro Schema_,
@@ -337,6 +349,65 @@ $ mvn clean package assembly:single -DskipTests
 $ mvn clean package native:compile-no-fork -DskipTests
 ```
 
+#### GraalVM `native-image` and choosing a machine type
+
+[`native-image`][native-image] is what [GraalVM] uses to compiles Java code into native executables.
+The default options used by `native-image` are OK, but one determines the exact set of CPU features the compilation
+happens against: `-march`
+(documented in the [`native-image` build options](https://www.graalvm.org/latest/reference-manual/native-image/overview/Options/#build-options)).
+
+<details>
+<summary>Output of `-march=list` on `x86_64`</summary>
+
+```shell
+On AMD64, the following machine types are available:
+
+'compatibility'
+  CPU features: all of 'x86-64'
+'haswell'
+  CPU features: all of 'x86-64' + SSE3 + SSSE3 + SSE4_1 + SSE4_2 + POPCNT + LZCNT + AVX + AVX2 + AES + CLMUL + BMI1 + BMI2 + FMA
+'native'
+  CPU features: CX8 + CMOV + FXSR + HT + MMX + AMD_3DNOW_PREFETCH + SSE + SSE2 + SSE3 + SSSE3 + SSE4A + SSE4_1 + SSE4_2 + POPCNT + LZCNT + TSC + TSCINV_BIT + AVX + AVX2 + AES + ERMS + CLMUL + BMI1 + BMI2 + ADX + SHA + FMA + VZEROUPPER + FLUSH + FLUSHOPT + HV + RDTSCP + RDPID + FSRM + F16C + CET_SS
+'skylake'
+  CPU features: all of 'haswell' + AMD_3DNOW_PREFETCH + ADX + FLUSHOPT
+'skylake-avx512'
+  CPU features: all of 'skylake' + AVX512F + AVX512DQ + AVX512CD + AVX512BW + AVX512VL + CLWB
+'x86-64'
+  CPU features: CX8 + CMOV + FXSR + MMX + SSE + SSE2
+'x86-64-v1'
+  CPU features: all of 'x86-64'
+'x86-64-v2'
+  CPU features: all of 'x86-64-v1' + SSE3 + SSSE3 + SSE4_1 + SSE4_2 + POPCNT
+'x86-64-v3'
+  CPU features: all of 'x86-64-v2' + LZCNT + AVX + AVX2 + BMI1 + BMI2 + FMA
+'x86-64-v4'
+  CPU features: all of 'x86-64-v3' + AVX512F + AVX512DQ + AVX512CD + AVX512BW + AVX512VL
+```
+</details>
+
+<details>
+<summary>Output of `-march=list` on `aarch64_64`</summary>
+
+```shell
+On AArch64, the following machine types are available:
+
+'armv8-a'
+  CPU features: FP + ASIMD
+'armv8.1-a'
+  CPU features: all of 'armv8-a' + CRC32 + LSE
+'compatibility'
+  CPU features: all of 'armv8-a'
+'native'
+  CPU features: FP + ASIMD + EVTSTRM + AES + PMULL + SHA1 + SHA2 + CRC32 + LSE + DCPOP + SHA3 + SHA512 + SVE + PACA + SVEBITPERM + SVE2
+
+
+The option also supports one or more feature modifiers via the form '-march=arch{+[no]feature}*'. Example: 'armv8.1-a+lse' enables Large System Extension instructions.
+The following feature modifiers are available: 'aes', 'lse', 'fp', 'simd'.
+```
+</details>
+
+After a bit of experimentation, we determined that `-march=compatibility` was the best choice.
+
 # Credits
 
 As any open source tool, this builds on the shoulders of the great work of others (see the [pom.xml](./pom.xml)).
@@ -367,6 +438,7 @@ But I want to especially thank 2 projects for the _core_ of the functionality:
 [CI]: https://www.atlassian.com/continuous-delivery/continuous-integration
 [asdf]: https://asdf-vm.com/
 [GraalVM]: https://www.graalvm.org/
+[native-image]: https://www.graalvm.org/latest/reference-manual/native-image/
 [Kafka Message Key]: https://www.confluent.io/learn/kafka-message-key/
 [RDBMS WAL]: https://debezium.io/documentation/reference/stable/connectors/postgresql.html#how-the-postgresql-connector-works
 [schema subject]: https://developer.confluent.io/courses/schema-registry/schema-subjects/
