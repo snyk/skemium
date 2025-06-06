@@ -1,8 +1,10 @@
 package io.snyk.skemium.helpers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.File;
@@ -10,8 +12,10 @@ import java.io.IOException;
 
 /// Helper to interact with JSON.
 public class JSON {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .registerModule(new JavaTimeModule());
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
+            .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
+            .addModule(new JavaTimeModule())
+            .build();
 
     public static String pretty(final String jsonStr) throws JsonProcessingException {
         return pretty(toJsonNode(jsonStr));

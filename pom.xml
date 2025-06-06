@@ -5,7 +5,7 @@
 
   <groupId>com.github.kafkesc</groupId>
   <artifactId>skemium</artifactId>
-  <version>1.0.0-rc3</version>
+  <version>1.0.0-rc4</version>
 
   <name>skemium</name>
   <url>https://github.com/kafkesc/skemium</url>
@@ -348,8 +348,6 @@
             <buildArgs>
               <buildArg>-O3</buildArg>
               <buildArg>-march=compatibility</buildArg>
-              <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
-              <buildArg>-H:IncludeResources=logback.xml|META-INF/MANIFEST.MF</buildArg>
             </buildArgs>
             <mainClass>${const.mainClass}</mainClass>
           </configuration>
