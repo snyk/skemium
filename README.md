@@ -4,7 +4,7 @@
 
 # Skemium
 
-Generate and Compare [Debezium] Chance Data Capture ([CDC]) [Avro] Schema.
+Generate and Compare [Debezium] Change Data Capture ([CDC]) [Avro] Schema.
 
 Leveraging [Debezium] and [Schema Registry] own codebases, each Table of a Database is mapped to 3 components:
 
