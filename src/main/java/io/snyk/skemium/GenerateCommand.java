@@ -95,7 +95,7 @@ public class GenerateCommand extends BaseCommand {
     @Option(
             names = {"-t", "--table"},
             defaultValue = "${env:DB_TABLE}",
-            description = "Database table(s); all if omitted (env: DB_TABLE - optional)",
+            description = "Database table(s); all if omitted (fmt: DB_SCHEMA.DB_TABLE|DB_TABLE - env: DB_TABLE - optional)",
             split = ","
     )
     Set<String> dbTables;
@@ -195,6 +195,11 @@ public class GenerateCommand extends BaseCommand {
             LOG.debug("  Table(s): ALL");
         } else {
             LOG.debug("  Table(s): {}", String.join(", ", dbTables));
+        }
+        if (dbExcludedColumns == null || dbExcludedColumns.isEmpty()) {
+            LOG.debug("  Excluded Column(s): NONE");
+        } else {
+            LOG.debug("  Excluded Column(s): {}", String.join(", ", dbExcludedColumns));
         }
         LOG.debug("Output");
         LOG.debug("  Directory: {} (exists: {})", outputDir.toAbsolutePath().normalize(), outputDir.toFile().exists());
