@@ -187,7 +187,7 @@ converts table schemas to Avro Schemas, stores them in a directory.
 
 Parameters:
       [DIRECTORY_PATH]        Output directory
-                                Default: skemium-20250530-155002
+                                Default: skemium-20250610-161400
 
 Options:
   -d, --database=<dbName>     Database name (env: DB_NAME)
@@ -200,13 +200,36 @@ Options:
   -s, --schema=<dbSchemas>[,<dbSchemas>...]
                               Database schema(s); all if omitted (env: DB_SCHEMA - optional)
   -t, --table=<dbTables>[,<dbTables>...]
-                              Database table(s); all if omitted (env: DB_TABLE - optional)
+                              Database table(s); all if omitted (fmt: DB_SCHEMA.DB_TABLE|DB_TABLE - env: DB_TABLE - optional)
   -u, --username=<username>   Database username (env: DB_USERNAME)
   -v, --verbose               Logging Verbosity - use multiple -v to increase (default: ERROR)
   -x, --exclude-column=<dbExcludedColumns>[,<dbExcludedColumns>...]
                               Database table column(s) to exclude (fmt: DB_SCHEMA.DB_TABLE.DB_COLUMN - env: DB_EXCLUDED_COLUMN - optional)
 ```
 </details>
+
+### Filtering parts of the Database Schema
+
+`generate` offers options to filter parts of the Database Schema:
+
+* `-s | --schema`: only include selected schema(s) in the output
+  * Format: `-s DB_SCHEMA`
+  * Cardinality: `1..*`, either repeat option OR use comma (`,`) separator
+* `-t | --table`: only include selected table(s) in the output
+  * Format: `-t DB_TABLE` or `-t DB_SCHEMA.DB_TABLE`
+  * Cardinality: `1..*`, either repeat option OR use comma (`,`) separator
+  * Specificity:
+    * `DB_TABLE`: includes all tables of that name, across all selected schemas
+    * `DB_SCHEMA.DB_TABLE` includes only a table of that name, in the specific schema
+* `-x | --exclude-column`: exclude selected column(s) from the output
+  * Format: `-x DB_SCHEMA.DB_TABLE.DB_COLUMN`
+  * Cardinality: `1..*`, either repeat option OR use comma (`,`) separator
+
+Where:
+
+* `DB_SCHEMA` is the name of a schema defined in the database (e.g. `public`)
+* `DB_TABLE` is the name of a table in the database
+* `DB_COLUMN` is the name of a column in the database
 
 ## `compare` command
 

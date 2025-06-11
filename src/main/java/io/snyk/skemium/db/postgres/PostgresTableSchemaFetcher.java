@@ -20,6 +20,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.debezium.relational.RelationalDatabaseConnectorConfig.COLUMN_EXCLUDE_LIST;
 
@@ -81,50 +82,54 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
                                    @Nullable final Set<String> excludedColumns) throws Exception {
         final List<TableSchema> result = new ArrayList<>();
 
+        // IMPORTANT: At this stage we only filter by `includedSchemas` and `includedTables`.
+        // Filtering out `excludedColumns` happens later,
+        // by injecting configuration (i.e. `COLUMN_EXCLUDE_LIST`).
+
         LOG.trace("Fetching Schemas");
-        final Set<String> foundSchemas = connection.readAllSchemaNames((s) -> {
+        final AtomicInteger totalSchemas = new AtomicInteger(0);
+        final Set<String> selectedSchemas = connection.readAllSchemaNames((s) -> {
             // Always exclude built-in schemas
             if (postgresBuiltInSchemas.contains(s)) {
                 return false;
             }
 
+            totalSchemas.getAndIncrement();
             if (includedSchemas != null && !includedSchemas.isEmpty()) {
                 return includedSchemas.contains(s);
             }
             return true;
         });
-        LOG.debug("Found {} Schemas: ", foundSchemas.size());
-        foundSchemas.forEach(s -> LOG.trace("  {}", s));
+        LOG.debug("Selected {} Schemas (out of {}): ", selectedSchemas.size(), totalSchemas.get());
+        selectedSchemas.forEach(s -> LOG.trace("  {}", s));
 
-        // At this stage we only filter:
-        //
-        //   1. Schemas
-        //   2. Tables
-        //
-        // Filtering of Columns happens later, by optionally injecting configuration (i.e. `COLUMN_EXCLUDE_LIST`).
-        final List<TableId> allFoundTables = new ArrayList<>();
-        for (final String foundSchema : foundSchemas) {
-            LOG.trace("Fetching Tables from Schema: {}", foundSchema);
+        LOG.trace("Fetching Tables");
+        final List<TableId> allSelectedTables = new ArrayList<>();
+        for (final String selectedSchema : selectedSchemas) {
+            LOG.trace("Fetching Tables from Schema: {}", selectedSchema);
 
-            final Tables foundTables = new Tables();
+            final AtomicInteger totalTablesForSchema = new AtomicInteger(0);
+            final Tables selectedTables = new Tables();
             connection.readSchema(
-                    foundTables,
+                    selectedTables,
                     database,
-                    foundSchema,
+                    selectedSchema,
                     Tables.TableFilter.fromPredicate((t) -> {
+                        totalTablesForSchema.getAndIncrement();
                         if (includedTables != null && !includedTables.isEmpty()) {
-                            return includedTables.contains(t.table());
+                            return includedTables.contains(t.table()) ||
+                                    includedTables.contains("%s.%s".formatted(t.schema(), t.table()));
                         }
                         return true;
                     }),
                     null, //< No Column filtering during this step
                     true
             );
-            LOG.debug("Found {} Tables in Schema {}", foundTables.size(), foundSchema);
-            foundTables.tableIds().forEach(t -> LOG.trace("  {}", t.identifier()));
-            allFoundTables.addAll(foundTables.tableIds());
+            LOG.debug("Selected {} Tables in Schema {} (out of {})", selectedTables.size(), selectedSchema, totalTablesForSchema.get());
+            selectedTables.tableIds().forEach(t -> LOG.trace("  {}", t.identifier()));
+            allSelectedTables.addAll(selectedTables.tableIds());
         }
-        LOG.debug("Found {} Tables in total: ", allFoundTables.size());
+        LOG.debug("Selected {} Tables in total: ", allSelectedTables.size());
 
         // Filter-out Columns, if requested
         final PostgresConnectorConfig connectorConfig = excludedColumns != null
@@ -138,7 +143,7 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
                 valueConverter)) {
             postgresSchema.refresh(connection, true);
 
-            for (final TableId tId : allFoundTables) {
+            for (final TableId tId : allSelectedTables) {
                 result.add(postgresSchema.schemaFor(tId));
             }
         } catch (final Exception e) {
