@@ -55,7 +55,7 @@
     <ver.jgit>7.2.1.202505142326-r</ver.jgit>
     <ver.junit-jupiter>5.11.4</ver.junit-jupiter>
     <ver.kafka-connect-avro-converter>7.8.0</ver.kafka-connect-avro-converter>
-    <ver.kafka>3.8.1</ver.kafka>
+    <ver.kafka>3.9.1</ver.kafka>
     <ver.logback>1.5.18</ver.logback>
     <ver.maven-assembly>3.7.1</ver.maven-assembly>
     <ver.maven-clean>3.4.0</ver.maven-clean>
@@ -67,7 +67,7 @@
     <ver.maven-resources>3.3.1</ver.maven-resources>
     <ver.maven-surefire>3.5.3</ver.maven-surefire>
     <ver.picocli>4.7.7</ver.picocli>
-    <ver.postgresql>42.7.5</ver.postgresql>
+    <ver.postgresql>42.7.7</ver.postgresql>
     <ver.slf4j>2.0.17</ver.slf4j>
     <ver.testcontainers.postgresql>1.21.0</ver.testcontainers.postgresql>
   </properties>
