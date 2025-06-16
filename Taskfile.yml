@@ -1,0 +1,30 @@
+# https://taskfile.dev
+version: '3'
+
+vars:
+  SNYK_SEVERITY: high
+
+tasks:
+  clean:
+    cmds:
+      - mvn clean
+
+  package:
+    deps: [clean]
+    cmds:
+      - mvn package
+
+  package.uber-jar:
+    deps: [clean]
+    cmds:
+      - mvn package assembly:single -DskipTests
+
+  package.native-executable:
+    deps: [clean]
+    cmds:
+      - mvn package native:compile-no-fork -DskipTests
+
+  snyk.test:
+    cmds:
+      - snyk test . --severity-threshold={{.SNYK_SEVERITY}}  --all-projects
+      - snyk code test
