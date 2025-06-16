@@ -93,7 +93,7 @@ public record TableAvroSchemas(@Nonnull String identifier,
     /// @throws FileNotFoundException
     /// @throws JsonProcessingException
     public void saveTo(@Nonnull final Path outputDir) throws FileNotFoundException, JsonProcessingException {
-        LOG.debug("Saving Table Avro Descriptor: {} -> {}", identifier, outputDir);
+        LOG.info("Saving Table Avro Schemas: {} -> {}", identifier, outputDir);
         final Path keyOutputPath = outputDir.toAbsolutePath().resolve(keyFilename());
         final Path valueOutputPath = outputDir.toAbsolutePath().resolve(valueFilename());
         final Path envelopeOutputPath = outputDir.toAbsolutePath().resolve(envelopeFilename());

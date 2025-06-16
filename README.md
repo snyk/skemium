@@ -431,6 +431,11 @@ The following feature modifiers are available: 'aes', 'lse', 'fp', 'simd'.
 
 After a bit of experimentation, we determined that `-march=compatibility` was the best choice.
 
+## Taskfile (optional)
+
+If you have taken advantage of the [asdf] setup (i.e. `asdf install`), you have already installed https://taskfile.dev/.
+Most frequently used _tasks_ are already configured in the [Taskfile](./Taskfile.yml). Give it a go!
+
 # Credits
 
 As any open source tool, this builds on the shoulders of the great work of others (see the [pom.xml](./pom.xml)).
