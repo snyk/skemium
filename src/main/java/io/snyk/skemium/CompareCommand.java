@@ -119,18 +119,31 @@ public class CompareCommand extends BaseCommand {
             // Were there table removals/additions detected?
             if (!res.removedTables().isEmpty()) {
                 checkPassed = !ciMode && checkPassed;
-
-                LOG.error("Tables removed between CURRENT and NEXT: {}", res.removedTables().size());
+                
+                if (ciMode) {
+                    LOG.error("Tables removed between CURRENT and NEXT: {}", res.removedTables().size());
+                } else {
+                    LOG.warn("Tables removed between CURRENT and NEXT: {}", res.removedTables().size());
+                }
                 res.removedTables().forEach(removedTableId -> LOG.error("  {}", removedTableId));
             }
             if (!res.addedTables().isEmpty()) {
                 checkPassed = !ciMode && checkPassed;
 
-                LOG.error("Tables added between CURRENT and NEXT: {}", res.addedTables().size());
+                if (ciMode) {
+                    LOG.error("Tables added between CURRENT and NEXT: {}", res.addedTables().size());
+                } else {
+                    LOG.warn("Tables added between CURRENT and NEXT: {}", res.addedTables().size());
+                }
                 res.addedTables().forEach(addedTableId -> LOG.error("  {}", addedTableId));
             }
 
-            return checkPassed ? 0 : 1;
+            if (checkPassed) {
+                LOG.info("Compatibility check succeeded");
+                return 0;
+            }
+            LOG.error("Compatibility check failed");
+            return 1;
         } catch (Exception e) {
             LOG.error("Failed to compare Database Tables Schemas", e);
             return 1;

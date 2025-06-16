@@ -96,7 +96,7 @@ public record MetadataFile(
     public void saveTo(@Nonnull final Path outputDir) throws FileNotFoundException, JsonProcessingException {
         final Path fileOutputPath = outputDir.toAbsolutePath().resolve(FILENAME);
 
-        LOG.trace("Saving Skemium metadata: {}", fileOutputPath);
+        LOG.debug("Saving Skemium metadata: {}", fileOutputPath);
         try (final PrintWriter out = new PrintWriter(fileOutputPath.toString())) {
             out.println(JSON.pretty(this));
         }
