@@ -52,13 +52,13 @@
     <ver.commons-codec>1.18.0</ver.commons-codec>
     <ver.debezium>3.0.8.Final</ver.debezium>
     <ver.jackson>2.19.0</ver.jackson>
-    <ver.jgit>7.2.1.202505142326-r</ver.jgit>
-    <ver.junit-jupiter>5.11.4</ver.junit-jupiter>
-    <ver.kafka-connect-avro-converter>7.8.0</ver.kafka-connect-avro-converter>
+    <ver.jgit>7.3.0.202506031305-r</ver.jgit>
+    <ver.junit-jupiter>5.13.1</ver.junit-jupiter>
+    <ver.kafka-connect-avro-converter>7.9.1</ver.kafka-connect-avro-converter>
     <ver.kafka>3.9.1</ver.kafka>
     <ver.logback>1.5.18</ver.logback>
     <ver.maven-assembly>3.7.1</ver.maven-assembly>
-    <ver.maven-clean>3.4.0</ver.maven-clean>
+    <ver.maven-clean>3.5.0</ver.maven-clean>
     <ver.maven-compiler>3.14.0</ver.maven-compiler>
     <ver.maven-install>3.1.4</ver.maven-install>
     <ver.maven-jar>3.4.2</ver.maven-jar>
