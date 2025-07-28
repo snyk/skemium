@@ -50,11 +50,13 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <ver.avro>1.12.0</ver.avro>
     <ver.commons-codec>1.18.0</ver.commons-codec>
+    <ver.commons-compress>1.27.1</ver.commons-compress>
+    <ver.commons-lang3>3.18.0</ver.commons-lang3>
     <ver.debezium>3.0.8.Final</ver.debezium>
     <ver.jackson>2.19.0</ver.jackson>
     <ver.jgit>7.3.0.202506031305-r</ver.jgit>
     <ver.junit-jupiter>5.13.1</ver.junit-jupiter>
-    <ver.kafka-connect-avro-converter>7.9.1</ver.kafka-connect-avro-converter>
+    <ver.kafka-connect-avro-converter>7.9.2</ver.kafka-connect-avro-converter>
     <ver.kafka>3.9.1</ver.kafka>
     <ver.logback>1.5.18</ver.logback>
     <ver.maven-assembly>3.7.1</ver.maven-assembly>
@@ -152,6 +154,18 @@
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <version>${ver.commons-codec}</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-compress -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>${ver.commons-compress}</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${ver.commons-lang3}</version>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
