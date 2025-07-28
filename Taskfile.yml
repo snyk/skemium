@@ -27,4 +27,4 @@ tasks:
   snyk.test:
     cmds:
       - snyk test . --severity-threshold={{.SNYK_SEVERITY}}  --all-projects
-      - snyk code test
+      - snyk code test . --severity-threshold={{.SNYK_SEVERITY}} --all-projects
