@@ -1,0 +1,32 @@
+{
+  "type" : "record",
+  "name" : "Value",
+  "namespace" : "testdb.public.resource",
+  "fields" : [ {
+    "name" : "id",
+    "type" : {
+      "type" : "string",
+      "connect.version" : 1,
+      "connect.name" : "io.debezium.data.Uuid"
+    }
+  }, {
+    "name" : "created",
+    "type" : {
+      "type" : "string",
+      "connect.version" : 1,
+      "connect.name" : "io.debezium.time.ZonedTimestamp"
+    }
+  }, {
+    "name" : "description",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "is_good",
+    "type" : "boolean"
+  }, {
+    "name" : "is_better",
+    "type" : [ "null", "boolean" ],
+    "default" : null
+  } ],
+  "connect.name" : "testdb.public.resource.Value"
+}

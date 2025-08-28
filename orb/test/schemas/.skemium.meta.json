@@ -1,0 +1,13 @@
+{
+  "created_ISO8601" : "2025-08-28T10:16:54.608012Z",
+  "created" : 1756376214608,
+  "arguments" : [ "generate", "./base_schemas/", "--database=testdb", "--hostname=localhost", "--port=5432", "--username=postgres", "--password=postgres", "--table", "resource", "--kind=POSTGRES", "-vvvv" ],
+  "schemas" : {
+    "testdb.public.resource" : "06b7304902afe0ca129496dd68ae1f740bcefef955009fa18239d624473fe60b"
+  },
+  "sha256" : "798b06ff180bbb061884f30319a945a245d30ee76a57a721de8f24ff92256788",
+  "count" : 1,
+  "vcsCommit" : null,
+  "vcsBranch" : null,
+  "vcsTag" : null
+}
