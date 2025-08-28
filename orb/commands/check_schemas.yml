@@ -1,0 +1,66 @@
+description: >
+  Ensures the schemas are up-to-date and evolve in a backwards-compatible way.
+parameters:
+  schemaDir:
+    type: string
+    description: Directory where the Skemium schemas are stored in.
+  # TODO: make array?
+  # There's no Array type for parameters.
+  tableName:
+    type: string
+    description: |
+      Table name to generate the schemas for, in the form `<schema>.<table>`
+  # TODO: expand with 'exclude-column' option?
+  targetBranch:
+    type: string
+    description: "Target Branch where PRs are merged into"
+    default: "main"
+  pgHost:
+    type: string
+    description: |
+      Hostname of the PG Database that is setup with your latest DB schema.
+    default: "localhost"
+  pgPort:
+    type: integer
+    description: Port to connect to the PG database
+    default: 5432
+  pgUser:
+    type: string
+    description: Username to connect to the PG database
+    default: "postgres"
+  pgPassword:
+    type: string
+    description: Password to connect to the PG database
+    default: "postgres"
+  pgDBName:
+    type: string
+    description: Name of the database
+  skemiumVersion:
+    type: string
+    # TODO: can we inject this at "build time"?
+    default: "1.0.3"
+
+steps:
+  - run:
+      # TODO: could we place it somewhere in $PATH to not require /tmp/??
+      name: Install Skemium
+      environment:
+        VERSION: "<< parameters.skemiumVersion >>"
+      command: <<include(scripts/install_skemium.sh)>>
+  - run:
+      name: Generate Avro Schemas
+      environment:
+        SCHEMA_DIR: << parameters.schemaDir >>
+        PGDATABASE: << parameters.pgDBName >>
+        PGHOST: << parameters.pgHost >>
+        PGPORT: << parameters.pgPort >>
+        PGUSER: << parameters.pgUser >>
+        PGPASSWORD: << parameters.pgPassword >>
+        TABLE_NAME: << parameters.tableName >>
+      command: <<include(scripts/generate_schemas.sh)>>
+  - run:
+      name: Compare Avro Schemas
+      environment:
+        SCHEMA_DIR: << parameters.schemaDir >>
+        TARGET_BRANCH: << parameters.targetBranch >>
+      command: <<include(scripts/compare_schemas.sh)>>

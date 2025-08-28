@@ -1,8 +1,16 @@
 version: 2.1
+setup: true
 
 orbs:
   prodsec: snyk/prodsec-orb@1
   snyk: snyk/snyk@2
+  orb-tools: circleci/orb-tools@12.3
+  shellcheck: circleci/shellcheck@3.2
+
+# TODO: still unsure what this filter does exactly...
+filters: &filters
+  tags:
+    only: /.*/
 
 jobs:
   security-scans:
@@ -15,6 +23,29 @@ jobs:
           mode: auto
           open-source-additional-arguments: --exclude=test
           iac-scan: disabled
+
+  orb-test:
+    resource_class: medium
+    docker:
+      - image: cimg/base:2025.08
+        environment:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+      - image: cimg/postgres:14.16
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+    steps:
+      - checkout
+      - run:
+          # TODO: we could do a fancier approach here :-)
+          name: "Wait for DB"
+          command: sleep 5
+      - run:
+          name: "Orb Tests"
+          command: orb/test/test.sh
 
 workflows:
   version: 2
@@ -31,3 +62,39 @@ workflows:
           name: Security Scans
           context:
             - appsecex_data-backend
+      - orb-tools/lint:
+          filters: *filters
+          source_dir: orb
+      - orb-tools/pack:
+          source_dir: orb
+          filters: *filters
+      - orb-tools/review:
+          source_dir: orb
+          filters: *filters
+      - shellcheck/check:
+          filters: *filters
+      - orb-test:
+          filters: *filters
+      # Release dev versions.
+      # TODO: uncomment
+      # - orb-tools/publish:
+      #     orb_name: skemium
+      #     vcs_type: << pipeline.project.type >>
+      #     pub_type: dev
+      #     requires:
+      #       - orb-tools/pack
+      #     context: TODO
+      #     filters: *filters
+      # Triggers the next workflow in the Orb Development Kit.
+      - orb-tools/continue:
+          pipeline_number: << pipeline.number >>
+          vcs_type: << pipeline.project.type >>
+          orb_name: skemium
+          config_path: .circleci/orb.yml
+          requires:
+            - orb-tools/lint
+            - orb-tools/pack
+            - orb-tools/review
+            - shellcheck/check
+            - orb-test
+          filters: *filters

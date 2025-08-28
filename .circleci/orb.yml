@@ -1,0 +1,57 @@
+version: "2.1"
+orbs:
+  orb-tools: circleci/orb-tools@12.3
+
+filters: &filters
+  tags:
+    only: /.*/
+
+jobs:
+  test-schema-check:
+    resource_class: medium
+    docker:
+      - image: cimg/base:2025.08
+      - image: cimg/postgres:14.16
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+    steps:
+      - checkout
+      - run:
+          name: "Create Database"
+          command: |
+            sleep 5  # wait for DB to come up...
+            psql -U postgres -h localhost -p 5432 -c "CREATE DATABASE testdb;"
+      - run:
+          name: "Migrate Database"
+          command: |
+            psql -d testdb -U postgres -h localhost -p 5432 -f ./orb/test/migrations/0001_setup.sql
+      - skemium/check_schemas:
+          tableName: "resource"
+          pgDBName: "testdb"
+          schemaDir: orb/test/schemas
+
+workflows:
+  test-and-deploy:
+    jobs:
+      - test-schema-check:
+          filters: *filters
+      - orb-tools/pack:
+          filters: *filters
+          source_dir: orb
+      # TODO: uncomment
+      #- orb-tools/publish:
+      #    orb_name: snyk/skemium
+      #    vcs_type: << pipeline.project.type >>
+      #    # TODO: this should be production (eventually).
+      #    pub_type: dev
+      #    requires:
+      #      - orb-tools/pack
+      #    context: TODO
+      #    # only release on tags
+      #    filters:
+      #      branches:
+      #        ignore: /.*/
+      #      tags:
+      #        only: /^v[0-9]+\.[0-9]+\.[0-9]+$/

@@ -1,0 +1,11 @@
+version: 2.1
+
+description: >
+  Ensure backwards-compatiblity of DB changes with regards to Debezium / CDC.
+
+# This information will be displayed in the orb registry and is not mandatory.
+display:
+  home_url: "https://github.com/snyk/skemium"
+  source_url: "https://github.com/snyk/skemium"
+# Dependency orbs
+orbs: {}

@@ -1,0 +1,46 @@
+description: >
+  Example on how to use the skemium/check_schemas command to ensure
+  your CDC schemas are up-to-date and evolve in non-breaking ways.
+# Provide a use-case based example for using this orb.
+# Everything in the `usage` section will be displayed in the orb registry.
+# Comments are not retained.
+usage:
+  version: 2.1
+  orbs:
+    skemium: snyk/skemium@1.2.3
+  jobs:
+    schema-check:
+      resource_class: medium
+      docker:
+        # Use whatever you need to run your migrations.
+        - image: cimg/base:2025.08
+        # Setup a database that the schema checks can connect to.
+        - image: cimg/postgres:14.16
+          environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_HOST_AUTH_METHOD: trust
+      steps:
+        - checkout
+        # Setup the database and ensure it contains the up-to-date schema.
+        - run:
+            name: "Create Database"
+            command: |
+              sleep 5  # wait for DB to come up...
+              psql -U postgres -h localhost -p 5432 -c "CREATE DATABASE testdb;"
+        - run:
+            name: "Migrate Database"
+            command: |
+              psql -d testdb -U postgres -h localhost -p 5432 \
+                -f ./orb/test/migrations/0001_setup.sql
+        # Now check the actual schema
+        - skemium/check_schemas:
+            # point it to the directory in your repository that contains the
+            # generated schemas.
+            schemaDir: orb/test/schemas
+            tableName: "resource"
+            pgDBName: "testdb"
+  workflows:
+    schema-check:
+      jobs:
+        - schema-check
