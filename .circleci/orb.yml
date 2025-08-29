@@ -1,0 +1,75 @@
+version: "2.1"
+orbs:
+  orb-tools: circleci/orb-tools@12.3
+
+filters: &filters
+  tags:
+    only: /.*/
+
+jobs:
+  test-schema-check:
+    resource_class: medium
+    docker:
+      - image: cimg/openjdk:23.0.2
+      - image: cimg/postgres:14.16
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+    steps:
+      - checkout
+      - run:
+          name: "Build Skemium Binary"
+          command: |
+            mvn package assembly:single -DskipTests
+            ls ./target
+            mv ./target/skemium-*-jar-with-dependencies.jar /tmp/skemium.jar
+            echo '#!/bin/bash
+            java -jar /tmp/skemium.jar "$@"' > /tmp/skemium
+            chmod +x /tmp/skemium
+      - run:
+          name: "Create Database"
+          command: |
+            psql -U postgres -h localhost -p 5432 -c "CREATE DATABASE testdb;"
+      - run:
+          name: "Migrate Database"
+          command: |
+            psql -d testdb -U postgres -h localhost -p 5432 -f ./orb/test/migrations/0001_setup.sql
+      - skemium/check_schemas:
+          tableName: "resource"
+          pgDBName: "testdb"
+          schemaDir: orb/test/schemas
+  pack-and-publish:
+    resource_class: small
+    docker:
+      - image: circleci/circleci-cli:alpine
+    steps:
+      - checkout
+      - run:
+          name: "Replace version string"
+          command: |
+            VERSION=${CIRCLE_TAG:-1.0.3}
+            sed -i 's/VERSION_PLACEHOLDER/'"$VERSION"'/g' ./orb/commands/check_schemas.yml
+      - run:
+          name: "Pack and Publish"
+          command: |
+            mkdir -p ./orb/dist
+            circleci --help
+            circleci orb pack ./orb > ./orb/dist/orb.yml
+            # TODO: enable publishing.
+            # circleci-agent orb publish orb.yml snyk/skemium@$CIRCLE_TAG
+
+workflows:
+  test-and-deploy:
+    jobs:
+      - test-schema-check:
+          filters: *filters
+      # Instead of using the orb-tools, we use a custom job to replace our version-placeholder
+      # before packing & publishing.
+      - pack-and-publish:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+          # context: TODO

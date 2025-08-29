@@ -1,1 +1,1 @@
-ALTER TABLE "resource" DROP COLUMN "is_good"; 
+ALTER TABLE "resource" ADD COLUMN "new_good" BOOLEAN NOT NULL; 
