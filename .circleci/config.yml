@@ -27,7 +27,7 @@ jobs:
   orb-test:
     resource_class: medium
     docker:
-      - image: cimg/base:2025.08
+      - image: cimg/openjdk:23.0.2
         environment:
           PGHOST: localhost
           PGUSER: postgres
@@ -40,9 +40,14 @@ jobs:
     steps:
       - checkout
       - run:
-          # TODO: we could do a fancier approach here :-)
-          name: "Wait for DB"
-          command: sleep 5
+          name: "Build Skemium Binary"
+          command: |
+            mvn package assembly:single -DskipTests
+            ls ./target
+            mv ./target/skemium-*-jar-with-dependencies.jar /tmp/skemium.jar
+            echo '#!/bin/bash
+            java -jar /tmp/skemium.jar "$@"' > /tmp/skemium
+            chmod +x /tmp/skemium
       - run:
           name: "Orb Tests"
           command: orb/test/test.sh
@@ -66,8 +71,8 @@ workflows:
           filters: *filters
           source_dir: orb
       - orb-tools/pack:
-          source_dir: orb
           filters: *filters
+          source_dir: orb
       - orb-tools/review:
           source_dir: orb
           filters: *filters

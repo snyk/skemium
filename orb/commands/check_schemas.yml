@@ -37,8 +37,7 @@ parameters:
     description: Name of the database
   skemiumVersion:
     type: string
-    # TODO: can we inject this at "build time"?
-    default: "1.0.3"
+    default: "VERSION_PLACEHOLDER"
 
 steps:
   - run:

@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# skip if already exists.
+if [ -f /tmp/skemium ]; then
+    exit 0
+fi
+
 VERSION=${VERSION:-"1.0.3"}
 ARCH=${ARCH:-$(uname -m)}
 OS=${OS:-$(uname -s | tr '[:upper:]' '[:lower:]')}
