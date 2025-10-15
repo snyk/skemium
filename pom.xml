@@ -58,7 +58,7 @@
     <ver.junit-jupiter>5.13.1</ver.junit-jupiter>
     <ver.kafka-connect-avro-converter>7.9.2</ver.kafka-connect-avro-converter>
     <ver.kafka>3.9.1</ver.kafka>
-    <ver.logback>1.5.18</ver.logback>
+    <ver.logback>1.5.19</ver.logback>
     <ver.maven-assembly>3.7.1</ver.maven-assembly>
     <ver.maven-clean>3.5.0</ver.maven-clean>
     <ver.maven-compiler>3.14.0</ver.maven-compiler>
