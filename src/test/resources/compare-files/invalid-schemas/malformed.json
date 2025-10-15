@@ -1,0 +1,5 @@
+{
+  "type": "record",
+  "name": "Invalid"
+  // Missing closing bracket and fields array
+}

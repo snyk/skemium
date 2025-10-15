@@ -1,0 +1,32 @@
+{
+  "type" : "record",
+  "name" : "SchemaComparisonResult",
+  "namespace" : "io.snyk.skemium",
+  "fields" : [ {
+    "name" : "currentSchemaFile",
+    "type" : "string"
+  }, {
+    "name" : "nextSchemaFile",
+    "type" : "string"
+  }, {
+    "name" : "compatibilityLevel",
+    "type" : {
+      "type" : "enum",
+      "name" : "CompatibilityLevel",
+      "namespace" : "io.confluent.kafka.schemaregistry",
+      "symbols" : [ "NONE", "BACKWARD", "BACKWARD_TRANSITIVE", "FORWARD", "FORWARD_TRANSITIVE", "FULL", "FULL_TRANSITIVE" ]
+    }
+  }, {
+    "name" : "incompatibilities",
+    "type" : {
+      "type" : "array",
+      "items" : "string"
+    }
+  }, {
+    "name" : "isCompatible",
+    "type" : "boolean"
+  }, {
+    "name" : "hasSchemaChanges",
+    "type" : "boolean"
+  } ]
+}

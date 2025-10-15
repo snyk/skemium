@@ -1,0 +1,13 @@
+{
+  "type" : "record",
+  "name" : "Value",
+  "namespace" : "chinook.public.artist",
+  "fields" : [ {
+    "name" : "artist_id",
+    "type" : "int"
+  }, {
+    "name" : "name",
+    "type" : "string"
+  } ],
+  "connect.name" : "chinook.public.artist.Value"
+}

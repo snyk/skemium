@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "SimpleRecord",
+  "namespace": "io.snyk.skemium.test",
+  "fields": [
+    {
+      "name": "message",
+      "type": "string"
+    }
+  ]
+}

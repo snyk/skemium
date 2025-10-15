@@ -24,6 +24,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CompareCommandTest extends WithPostgresContainer {
     Path CURR_DIR;
@@ -58,54 +61,17 @@ class CompareCommandTest extends WithPostgresContainer {
     @Test
     public void shouldReportNoIncompatibilitiesWhenComparingLikeForLike() throws IOException {
         // TODO Map logger to stdout/err, if possible
-        final CommandLine cmdLine = new CommandLine(new GenerateCommand())
-                .setOut(new PrintWriter(new StringWriter()))
-                .setErr(new PrintWriter(new StringWriter()));
+        final CommandLine cmdLine = new CommandLine(new GenerateCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
 
-        assertEquals(0, cmdLine.execute(
-                "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
-                "--database", DB_NAME,
-                "--username", DB_USER,
-                "--password", DB_PASS,
-                "--table", "customer,genre,track,playlist,invoice,employee,album,artist",
-                CURR_DIR.toAbsolutePath().toString()
-        ));
+        assertEquals(0, cmdLine.execute("--hostname", POSTGRES_CONTAINER.getHost(), "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(), "--database", DB_NAME, "--username", DB_USER, "--password", DB_PASS, "--table", "customer,genre,track,playlist,invoice,employee,album,artist", CURR_DIR.toAbsolutePath().toString()));
         FileUtils.copyDirectory(CURR_DIR.toFile(), NEXT_DIR.toFile());
 
         final Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
 
         assertEquals(CompatibilityLevel.BACKWARD, res.compatibilityLevel());
-        assertEquals(Map.of(
-                "chinook.public.customer", List.of(),
-                "chinook.public.genre", List.of(),
-                "chinook.public.track", List.of(),
-                "chinook.public.invoice", List.of(),
-                "chinook.public.employee", List.of(),
-                "chinook.public.playlist", List.of(),
-                "chinook.public.album", List.of(),
-                "chinook.public.artist", List.of()
-        ), res.keyIncompatibilities());
-        assertEquals(Map.of(
-                "chinook.public.customer", List.of(),
-                "chinook.public.genre", List.of(),
-                "chinook.public.track", List.of(),
-                "chinook.public.invoice", List.of(),
-                "chinook.public.employee", List.of(),
-                "chinook.public.playlist", List.of(),
-                "chinook.public.album", List.of(),
-                "chinook.public.artist", List.of()
-        ), res.valueIncompatibilities());
-        assertEquals(Map.of(
-                "chinook.public.customer", List.of(),
-                "chinook.public.genre", List.of(),
-                "chinook.public.track", List.of(),
-                "chinook.public.invoice", List.of(),
-                "chinook.public.employee", List.of(),
-                "chinook.public.playlist", List.of(),
-                "chinook.public.album", List.of(),
-                "chinook.public.artist", List.of()
-        ), res.envelopeIncompatibilities());
+        assertEquals(Map.of("chinook.public.customer", List.of(), "chinook.public.genre", List.of(), "chinook.public.track", List.of(), "chinook.public.invoice", List.of(), "chinook.public.employee", List.of(), "chinook.public.playlist", List.of(), "chinook.public.album", List.of(), "chinook.public.artist", List.of()), res.keyIncompatibilities());
+        assertEquals(Map.of("chinook.public.customer", List.of(), "chinook.public.genre", List.of(), "chinook.public.track", List.of(), "chinook.public.invoice", List.of(), "chinook.public.employee", List.of(), "chinook.public.playlist", List.of(), "chinook.public.album", List.of(), "chinook.public.artist", List.of()), res.valueIncompatibilities());
+        assertEquals(Map.of("chinook.public.customer", List.of(), "chinook.public.genre", List.of(), "chinook.public.track", List.of(), "chinook.public.invoice", List.of(), "chinook.public.employee", List.of(), "chinook.public.playlist", List.of(), "chinook.public.album", List.of(), "chinook.public.artist", List.of()), res.envelopeIncompatibilities());
         assertEquals(Set.of(), res.removedTables());
         assertEquals(Set.of(), res.addedTables());
     }
@@ -113,73 +79,30 @@ class CompareCommandTest extends WithPostgresContainer {
     @Test
     public void shouldReportRemovedAndAddedTables() throws IOException {
         // TODO Map logger to stdout/err, if possible
-        final CommandLine cmdLine = new CommandLine(new GenerateCommand())
-                .setOut(new PrintWriter(new StringWriter()))
-                .setErr(new PrintWriter(new StringWriter()));
+        final CommandLine cmdLine = new CommandLine(new GenerateCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
 
         // CURR to have: customer, genre, track, playlist
-        assertEquals(0, cmdLine.execute(
-                "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
-                "--database", DB_NAME,
-                "--username", DB_USER,
-                "--password", DB_PASS,
-                "--table", "customer,genre,track,playlist",
-                CURR_DIR.toAbsolutePath().toString()
-        ));
+        assertEquals(0, cmdLine.execute("--hostname", POSTGRES_CONTAINER.getHost(), "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(), "--database", DB_NAME, "--username", DB_USER, "--password", DB_PASS, "--table", "customer,genre,track,playlist", CURR_DIR.toAbsolutePath().toString()));
         // NEXT to have: genre, track, invoice, employee
-        assertEquals(0, cmdLine.execute(
-                "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
-                "--database", DB_NAME,
-                "--username", DB_USER,
-                "--password", DB_PASS,
-                "--table", "genre,track,invoice,employee",
-                NEXT_DIR.toAbsolutePath().toString()
-        ));
+        assertEquals(0, cmdLine.execute("--hostname", POSTGRES_CONTAINER.getHost(), "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(), "--database", DB_NAME, "--username", DB_USER, "--password", DB_PASS, "--table", "genre,track,invoice,employee", NEXT_DIR.toAbsolutePath().toString()));
 
         final Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
 
         assertEquals(CompatibilityLevel.BACKWARD, res.compatibilityLevel());
-        assertEquals(Map.of(
-                "chinook.public.genre", List.of(),
-                "chinook.public.track", List.of()
-        ), res.keyIncompatibilities());
-        assertEquals(Map.of(
-                "chinook.public.genre", List.of(),
-                "chinook.public.track", List.of()
-        ), res.valueIncompatibilities());
-        assertEquals(Map.of(
-                "chinook.public.genre", List.of(),
-                "chinook.public.track", List.of()
-        ), res.envelopeIncompatibilities());
-        assertEquals(Set.of(
-                "chinook.public.customer",
-                "chinook.public.playlist"
-        ), res.removedTables());
-        assertEquals(Set.of(
-                "chinook.public.invoice",
-                "chinook.public.employee"
-        ), res.addedTables());
+        assertEquals(Map.of("chinook.public.genre", List.of(), "chinook.public.track", List.of()), res.keyIncompatibilities());
+        assertEquals(Map.of("chinook.public.genre", List.of(), "chinook.public.track", List.of()), res.valueIncompatibilities());
+        assertEquals(Map.of("chinook.public.genre", List.of(), "chinook.public.track", List.of()), res.envelopeIncompatibilities());
+        assertEquals(Set.of("chinook.public.customer", "chinook.public.playlist"), res.removedTables());
+        assertEquals(Set.of("chinook.public.invoice", "chinook.public.employee"), res.addedTables());
     }
 
     @Test
     public void shouldReportIncompatibleSchemaChange_MakingColumnNotNull() throws IOException, SQLException {
         // TODO Map logger to stdout/err, if possible
-        final CommandLine cmdLine = new CommandLine(new GenerateCommand())
-                .setOut(new PrintWriter(new StringWriter()))
-                .setErr(new PrintWriter(new StringWriter()));
+        final CommandLine cmdLine = new CommandLine(new GenerateCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
 
         // First, generate the schema for the `artist` table only
-        assertEquals(0, cmdLine.execute(
-                "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
-                "--database", DB_NAME,
-                "--username", DB_USER,
-                "--password", DB_PASS,
-                "--table", "artist",
-                CURR_DIR.toAbsolutePath().toString()
-        ));
+        assertEquals(0, cmdLine.execute("--hostname", POSTGRES_CONTAINER.getHost(), "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(), "--database", DB_NAME, "--username", DB_USER, "--password", DB_PASS, "--table", "artist", CURR_DIR.toAbsolutePath().toString()));
 
         // Alter schema of `artist` table: make column `name` not null:
         // this is a NON BACKWARE COMPATIBLE change
@@ -188,15 +111,7 @@ class CompareCommandTest extends WithPostgresContainer {
         }
 
         // Then, generate the new schema for the `artist` table only
-        assertEquals(0, cmdLine.execute(
-                "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
-                "--database", DB_NAME,
-                "--username", DB_USER,
-                "--password", DB_PASS,
-                "--table", "artist",
-                NEXT_DIR.toAbsolutePath().toString()
-        ));
+        assertEquals(0, cmdLine.execute("--hostname", POSTGRES_CONTAINER.getHost(), "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(), "--database", DB_NAME, "--username", DB_USER, "--password", DB_PASS, "--table", "artist", NEXT_DIR.toAbsolutePath().toString()));
 
         // Change is not BACKWARD compatible
         Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
@@ -229,22 +144,13 @@ class CompareCommandTest extends WithPostgresContainer {
     @Test
     public void shouldReportIncompatibleSchemaChange_AddMandatoryColumnWithoutDefaultValue() throws IOException, SQLException {
         // TODO Map logger to stdout/err, if possible
-        final CommandLine cmdLine = new CommandLine(new GenerateCommand())
-                .setOut(new PrintWriter(new StringWriter()))
-                .setErr(new PrintWriter(new StringWriter()));
+        final CommandLine cmdLine = new CommandLine(new GenerateCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
 
         // First, generate the schema for the `artist` table only
-        assertEquals(0, cmdLine.execute(
-                "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
-                "--database", DB_NAME,
-                "--username", DB_USER,
-                "--password", DB_PASS,
-                "--table", "artist",
-                CURR_DIR.toAbsolutePath().toString()
-        ));
+        assertEquals(0, cmdLine.execute("--hostname", POSTGRES_CONTAINER.getHost(), "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(), "--database", DB_NAME, "--username", DB_USER, "--password", DB_PASS, "--table", "artist", CURR_DIR.toAbsolutePath().toString()));
 
-        // Alter schema of `artist` table: add mandatory column `genre`, without adding a default value:
+        // Alter schema of `artist` table: add mandatory column `genre`, without adding
+        // a default value:
         // this is a NON BACKWARD COMPATIBLE change
         try (final Connection connection = getConnection()) {
             connection.prepareStatement("""
@@ -255,15 +161,7 @@ class CompareCommandTest extends WithPostgresContainer {
         }
 
         // Then, generate the new schema for the `artist` table only
-        assertEquals(0, cmdLine.execute(
-                "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
-                "--database", DB_NAME,
-                "--username", DB_USER,
-                "--password", DB_PASS,
-                "--table", "artist",
-                NEXT_DIR.toAbsolutePath().toString()
-        ));
+        assertEquals(0, cmdLine.execute("--hostname", POSTGRES_CONTAINER.getHost(), "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(), "--database", DB_NAME, "--username", DB_USER, "--password", DB_PASS, "--table", "artist", NEXT_DIR.toAbsolutePath().toString()));
 
         // Change is not BACKWARD compatible
         Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
@@ -296,20 +194,10 @@ class CompareCommandTest extends WithPostgresContainer {
     @Test
     public void shouldReportIncompatibleSchemaChange_SaveToOutputFile() throws IOException, SQLException {
         // TODO Map logger to stdout/err, if possible
-        final CommandLine generateCLI = new CommandLine(new GenerateCommand())
-                .setOut(new PrintWriter(new StringWriter()))
-                .setErr(new PrintWriter(new StringWriter()));
+        final CommandLine generateCLI = new CommandLine(new GenerateCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
 
         // First, generate the schema for the `employee` table only
-        assertEquals(0, generateCLI.execute(
-                "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
-                "--database", DB_NAME,
-                "--username", DB_USER,
-                "--password", DB_PASS,
-                "--table", "employee",
-                CURR_DIR.toAbsolutePath().toString()
-        ));
+        assertEquals(0, generateCLI.execute("--hostname", POSTGRES_CONTAINER.getHost(), "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(), "--database", DB_NAME, "--username", DB_USER, "--password", DB_PASS, "--table", "employee", CURR_DIR.toAbsolutePath().toString()));
 
         // Alter schema of `employee` table: make column `title` not null:
         // this is a NON BACKWARE COMPATIBLE change
@@ -318,29 +206,15 @@ class CompareCommandTest extends WithPostgresContainer {
         }
 
         // Then, generate the new schema for the `employee` table only
-        assertEquals(0, generateCLI.execute(
-                "--hostname", POSTGRES_CONTAINER.getHost(),
-                "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(),
-                "--database", DB_NAME,
-                "--username", DB_USER,
-                "--password", DB_PASS,
-                "--table", "employee",
-                NEXT_DIR.toAbsolutePath().toString()
-        ));
+        assertEquals(0, generateCLI.execute("--hostname", POSTGRES_CONTAINER.getHost(), "--port", POSTGRES_CONTAINER.getMappedPort(POSTGRES_DEFAULT_PORT).toString(), "--database", DB_NAME, "--username", DB_USER, "--password", DB_PASS, "--table", "employee", NEXT_DIR.toAbsolutePath().toString()));
 
         // TODO Map logger to stdout/err, if possible
-        final CommandLine compareCLI = new CommandLine(new CompareCommand())
-                .setOut(new PrintWriter(new StringWriter()))
-                .setErr(new PrintWriter(new StringWriter()));
+        final CommandLine compareCLI = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
 
-        // Change is not BACKWARD compatible, so the command is expected to fail (exit == 1).
+        // Change is not BACKWARD compatible, so the command is expected to fail (exit
+        // == 1).
         // Output saved to file.
-        assertEquals(1, compareCLI.execute(
-                "--compatibility", CompatibilityLevel.BACKWARD.toString(),
-                "--output", OUTPUT_FILE.toAbsolutePath().toString(),
-                CURR_DIR.toAbsolutePath().toString(),
-                NEXT_DIR.toAbsolutePath().toString()
-        ));
+        assertEquals(1, compareCLI.execute("--compatibility", CompatibilityLevel.BACKWARD.toString(), "--output", OUTPUT_FILE.toAbsolutePath().toString(), CURR_DIR.toAbsolutePath().toString(), NEXT_DIR.toAbsolutePath().toString()));
 
         final Result resFromOutputFile = JSON.from(OUTPUT_FILE.toFile(), Result.class);
         assertEquals(0, resFromOutputFile.keyIncompatibilitiesTotal());
@@ -351,5 +225,200 @@ class CompareCommandTest extends WithPostgresContainer {
         assertEquals(3, resFromOutputFile.envelopeIncompatibilities().get("chinook.public.employee").size());
         assertEquals(Set.of(), resFromOutputFile.removedTables());
         assertEquals(Set.of(), resFromOutputFile.addedTables());
+    }
+
+    @Test
+    public void shouldSucceedInNormalModeWithCompatibleChanges() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/next");
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // Compatible changes should succeed in normal mode
+        assertEquals(0, cmdLine.execute("--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+    }
+
+    @Test
+    public void shouldFailInCIModeWithCompatibleChanges() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/next");
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // Compatible changes should FAIL in CI mode (this is the new behavior)
+        assertEquals(1, cmdLine.execute("--ci-mode", "--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+    }
+
+    @Test
+    public void shouldReportSchemaChangesInResult() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/next");
+
+        final Result result = Result.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+
+        // Verify schema changes are detected
+        assertTrue(result.hasAnySchemaChanges());
+        assertTrue(result.hasSchemaChangesWithoutTableChanges());
+        assertEquals(1, result.totalTablesWithChanges());
+        assertTrue(result.tablesWithChanges().contains("chinook.public.artist"));
+
+        // Check specific schema changes
+        assertFalse(result.keySchemaChanged().get("chinook.public.artist")); // Key didn't change
+        assertTrue(result.valueSchemaChanged().get("chinook.public.artist")); // Value changed
+        assertTrue(result.envelopeSchemaChanged().get("chinook.public.artist")); // Envelope changed (contains
+        // Value)
+
+        // Verify it's still compatible
+        assertTrue(result.incompatibilitiesTotal() == 0);
+    }
+
+    @Test
+    public void shouldReportNoChangesWhenSchemasAreIdentical() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/current"); // Same
+        // directory
+
+        final Result result = Result.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+
+        // Verify no changes are detected
+        assertFalse(result.hasAnySchemaChanges());
+        assertFalse(result.hasSchemaChangesWithoutTableChanges());
+        assertEquals(0, result.totalTablesWithChanges());
+        assertTrue(result.tablesWithChanges().isEmpty());
+
+        // Check specific schema changes - all should be false
+        assertFalse(result.keySchemaChanged().get("chinook.public.artist"));
+        assertFalse(result.valueSchemaChanged().get("chinook.public.artist"));
+        assertFalse(result.envelopeSchemaChanged().get("chinook.public.artist"));
+
+        // Verify it's compatible
+        assertEquals(0, result.incompatibilitiesTotal());
+    }
+
+    @Test
+    public void shouldSucceedInCIModeWhenNoChanges() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/current"); // Same
+        // directory
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // No changes should succeed even in CI mode
+        assertEquals(0, cmdLine.execute("--ci-mode", "--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+    }
+
+    @Test
+    public void shouldStillFailInCIModeWithIncompatibleChanges() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-non_backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-non_backward_compatible/next");
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // Incompatible changes should still fail in CI mode (existing behavior)
+        assertEquals(1, cmdLine.execute("--ci-mode", "--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+    }
+
+    @Test
+    public void shouldReportIncompatibleChangesInResult() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-non_backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-non_backward_compatible/next");
+
+        final Result result = Result.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+
+        // Verify schema changes are detected
+        assertTrue(result.hasAnySchemaChanges());
+        assertTrue(result.hasSchemaChangesWithoutTableChanges());
+        assertEquals(1, result.totalTablesWithChanges());
+
+        // Verify it's incompatible
+        assertTrue(result.incompatibilitiesTotal() > 0);
+    }
+
+    @Test
+    public void shouldSaveEnhancedResultToOutputFile() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/next");
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // Run comparison and save to output file
+        assertEquals(0, cmdLine.execute("--compatibility", CompatibilityLevel.BACKWARD.toString(), "--output", OUTPUT_FILE.toAbsolutePath().toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+
+        // Load result from file and verify new fields are present
+        final Result result = JSON.from(OUTPUT_FILE.toFile(), Result.class);
+
+        // Verify new change tracking fields are populated
+        assertNotNull(result.keySchemaChanged());
+        assertNotNull(result.valueSchemaChanged());
+        assertNotNull(result.envelopeSchemaChanged());
+
+        assertTrue(result.keySchemaChanged().containsKey("chinook.public.artist"));
+        assertTrue(result.valueSchemaChanged().containsKey("chinook.public.artist"));
+        assertTrue(result.envelopeSchemaChanged().containsKey("chinook.public.artist"));
+
+        // Verify the change detection worked
+        assertFalse(result.keySchemaChanged().get("chinook.public.artist"));
+        assertTrue(result.valueSchemaChanged().get("chinook.public.artist"));
+        assertTrue(result.envelopeSchemaChanged().get("chinook.public.artist")); // Envelope changed (contains
+        // Value)
+
+        // Verify convenience methods work
+        assertTrue(result.hasAnySchemaChanges());
+        assertEquals(1, result.totalTablesWithChanges());
+        assertTrue(result.tablesWithChanges().contains("chinook.public.artist"));
+    }
+
+    @Test
+    public void shouldHandleMixedScenarioWithSchemaChangesAndTableAdditions() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-compatible_with_table_addition/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-compatible_with_table_addition/next");
+
+        final Result result = Result.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+
+        // Verify both schema changes and table additions are detected
+        assertTrue(result.hasAnySchemaChanges());
+        assertFalse(result.hasSchemaChangesWithoutTableChanges()); // Because there are table additions
+        assertFalse(result.addedTables().isEmpty()); // Table was added
+        assertTrue(result.removedTables().isEmpty()); // No tables removed
+
+        // Should have changes in existing table plus a new table
+        assertEquals(1, result.totalTablesWithChanges()); // Only existing table with changes
+        assertTrue(result.tablesWithChanges().contains("chinook.public.artist"));
+
+        // The added table should be in addedTables, not in schema changes
+        assertTrue(result.addedTables().contains("chinook.public.employee"));
+    }
+
+    @Test
+    public void shouldFailInCIModeWithMixedChanges() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-compatible_with_table_addition/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-compatible_with_table_addition/next");
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // Mixed changes (schema changes + table additions) should fail in CI mode
+        assertEquals(1, cmdLine.execute("--ci-mode", "--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+    }
+
+    @Test
+    public void shouldTestNoChangesScenario() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-no_changes/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-no_changes/next");
+
+        final Result result = Result.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+
+        // Verify absolutely no changes are detected
+        assertFalse(result.hasAnySchemaChanges());
+        assertFalse(result.hasSchemaChangesWithoutTableChanges());
+        assertEquals(0, result.totalTablesWithChanges());
+        assertTrue(result.tablesWithChanges().isEmpty());
+        assertTrue(result.addedTables().isEmpty());
+        assertTrue(result.removedTables().isEmpty());
+        assertEquals(0, result.incompatibilitiesTotal());
+
+        // CI mode should succeed with no changes
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        assertEquals(0, cmdLine.execute("--ci-mode", "--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
     }
 }

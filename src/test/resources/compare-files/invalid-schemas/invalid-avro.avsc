@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "InvalidAvro",
+  "fields": [
+    {
+      "name": "field1",
+      "type": "invalid_type"
+    }
+  ]
+}
