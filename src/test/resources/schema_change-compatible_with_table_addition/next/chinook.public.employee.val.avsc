@@ -1,0 +1,72 @@
+{
+  "type" : "record",
+  "name" : "Value",
+  "namespace" : "chinook.public.employee",
+  "fields" : [ {
+    "name" : "employee_id",
+    "type" : "int"
+  }, {
+    "name" : "last_name",
+    "type" : "string"
+  }, {
+    "name" : "first_name",
+    "type" : "string"
+  }, {
+    "name" : "title",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "reports_to",
+    "type" : [ "null", "int" ],
+    "default" : null
+  }, {
+    "name" : "birth_date",
+    "type" : [ "null", {
+      "type" : "long",
+      "connect.version" : 1,
+      "connect.name" : "io.debezium.time.MicroTimestamp"
+    } ],
+    "default" : null
+  }, {
+    "name" : "hire_date",
+    "type" : [ "null", {
+      "type" : "long",
+      "connect.version" : 1,
+      "connect.name" : "io.debezium.time.MicroTimestamp"
+    } ],
+    "default" : null
+  }, {
+    "name" : "address",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "city",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "state",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "country",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "postal_code",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "phone",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "fax",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "email",
+    "type" : [ "null", "string" ],
+    "default" : null
+  } ],
+  "connect.name" : "chinook.public.employee.Value"
+}

@@ -14,6 +14,7 @@ import java.io.IOException;
         subcommands = {
                 GenerateCommand.class,
                 CompareCommand.class,
+                CompareFilesCommand.class,
                 CommandLine.HelpCommand.class
         },
         headerHeading = "%nUsage:%n",

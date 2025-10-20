@@ -11,11 +11,9 @@ import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 
 /**
  * Base class for all commands (i.e., shared {@link Option}).
- * <p>
  * Features provided:
- * <ul>
- *     <li>Configure logging level via a {@code -v} "verbosity" flag</li>
- * </ul>
+    ** Configure logging level via a {@code -v} "verbosity" flag
+ *
  */
 public abstract class BaseCommand implements Callable<Integer> {
     private static final Logger LOG = LoggerFactory.getLogger(BaseCommand.class);

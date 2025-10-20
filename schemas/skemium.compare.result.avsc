@@ -81,5 +81,30 @@
       "items" : "string",
       "java-class" : "java.util.Set"
     }
+  }, {
+    "name" : "keySchemaChanged",
+    "type" : {
+      "type" : "map",
+      "values" : "boolean"
+    }
+  }, {
+    "name" : "valueSchemaChanged",
+    "type" : {
+      "type" : "map",
+      "values" : "boolean"
+    }
+  }, {
+    "name" : "envelopeSchemaChanged",
+    "type" : {
+      "type" : "map",
+      "values" : "boolean"
+    }
+  }, {
+    "name" : "tablesWithChanges",
+    "type" : [ "null", {
+      "type" : "array",
+      "items" : "string",
+      "java-class" : "java.util.Set"
+    } ]
   } ]
 }

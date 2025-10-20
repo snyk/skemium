@@ -1,0 +1,10 @@
+{
+  "created_ISO8601": "2024-01-01T00:00:00Z",
+  "created": 1704067200.0,
+  "arguments": ["test", "fixture"],
+  "count": 1,
+  "schemas": {
+    "chinook.public.playlist_track": "test-checksum-key-added-current"
+  },
+  "sha256": "test-checksum-key-added-current"
+}
