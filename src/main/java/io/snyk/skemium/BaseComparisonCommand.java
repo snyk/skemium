@@ -16,12 +16,13 @@ import java.nio.file.Path;
 
 /**
  * Base class for comparison commands that provides shared functionality.
- * 
+ * <p>
  * Features provided:
- * Common comparison options (compatibility level, output file)
- * Output file validation and writing
- * Shared logging and error handling patterns
- *
+ * <ul>
+ * <li>Common comparison options (compatibility level, output file)</li>
+ * <li>Output file validation and writing</li>
+ * <li>Shared logging and error handling patterns</li>
+ * </ul>
  */
 public abstract class BaseComparisonCommand extends BaseCommand {
     private static final Logger LOG = LoggerFactory.getLogger(BaseComparisonCommand.class);
