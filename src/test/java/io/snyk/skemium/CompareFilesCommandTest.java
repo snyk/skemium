@@ -307,9 +307,6 @@ class CompareFilesCommandTest {
 
     @Test
     void shouldSucceedWhenFieldsAreReorderedWithoutCiMode() {
-        // Avro schemas with reordered fields ARE compatible because Avro uses
-        // field names (not positions) for matching. The canonical representation
-        // should handle field reordering correctly.
         final CommandLine cmdLine = createCommandLine();
         final Path currentSchema = validSchemasDir.resolve("person-v1.avsc");
         final Path reorderedSchema = validSchemasDir.resolve("person-v1-reordered.avsc");
@@ -325,9 +322,7 @@ class CompareFilesCommandTest {
 
     @Test
     void shouldSucceedWhenFieldsAreReorderedWithCiMode() {
-        // In CI mode, reordered fields should NOT be detected as a change because
-        // we use Avro's semantic equality check (Schema.equals()) which ignores
-        // field ordering and other non-semantic differences.
+        // In CI mode, reordered fields should NOT be detected as a change
         final CommandLine cmdLine = createCommandLine();
         final Path currentSchema = validSchemasDir.resolve("person-v1.avsc");
         final Path reorderedSchema = validSchemasDir.resolve("person-v1-reordered.avsc");
