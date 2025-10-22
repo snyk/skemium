@@ -58,7 +58,8 @@ public record SchemaComparisonResult(
      * @return SchemaComparisonResult with comparison results
      * @throws IOException if files cannot be read or parsed
      */
-    public static SchemaComparisonResult build(@Nonnull Path currentSchemaFile,
+    public static SchemaComparisonResult build(
+            @Nonnull Path currentSchemaFile,
             @Nonnull Path nextSchemaFile,
             @Nonnull CompatibilityLevel compatibilityLevel) throws IOException {
         LOG.debug("Comparing schemas: {} -> {}", currentSchemaFile, nextSchemaFile);

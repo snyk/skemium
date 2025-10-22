@@ -1,5 +1,9 @@
 package io.snyk.skemium.helpers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.confluent.kafka.schemaregistry.CompatibilityChecker;
 import io.confluent.kafka.schemaregistry.CompatibilityLevel;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
@@ -8,12 +12,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 /// Helper to interact with Schema Registry.
 public class SchemaRegistry {
     private static final Logger LOG = LoggerFactory.getLogger(SchemaRegistry.class);
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     /// Check compatibility between a "Curr(ent)" and a "Next" [TableAvroSchemas], applying the given [CompatibilityLevel].
     ///
@@ -85,19 +92,77 @@ public class SchemaRegistry {
         return checker.isCompatible(nextSchema, List.of(currentSchema));
     }
 
-    /// Check if two individual AvroSchema objects are equal (same content).
+    /// Check if two individual AvroSchema objects are semantically equal.
+    /// Since Avro's Schema.equals() is order-sensitive, we normalize the schemas
+    /// to JSON, sort fields by name, and compare. This approach leverages existing
+    /// Jackson utilities rather than implementing custom schema traversal logic.
     ///
     /// @param currentSchema Current/baseline schema as [AvroSchema]
     /// @param nextSchema Next/target schema as [AvroSchema]
-    /// @return true if schemas are identical, false if different
+    /// @return true if schemas are semantically identical, false if different
     public static boolean checkSchemaEquality(@Nonnull final AvroSchema currentSchema,
             @Nonnull final AvroSchema nextSchema) {
         LOG.trace("Checking schema equality");
         LOG.trace("Current schema: {}", currentSchema.rawSchema());
         LOG.trace("Next schema: {}", nextSchema.rawSchema());
 
-        // Compare the canonical forms of the schemas
-        return Objects.equals(currentSchema.canonicalString(), nextSchema.canonicalString());
+        try {
+            final JsonNode normalized1 = normalizeSchemaJson(
+                JSON_MAPPER.readTree(currentSchema.rawSchema().toString()));
+            final JsonNode normalized2 = normalizeSchemaJson(
+                JSON_MAPPER.readTree(nextSchema.rawSchema().toString()));
+                
+            return normalized1.equals(normalized2);
+        } catch (Exception e) {
+            LOG.error("Failed to normalize schemas for equality check", e);
+            throw new RuntimeException("Schema normalization failed unexpectedly", e);
+        }
+    }
+
+    /// Normalize a schema's JSON representation by sorting all object keys and
+    /// sorting record fields by name. This creates a canonical form that can be
+    /// compared for semantic equality.
+    private static JsonNode normalizeSchemaJson(JsonNode node) {
+        if (node.isObject()) {
+            ObjectNode obj = JSON_MAPPER.createObjectNode();
+            
+            // Sort all keys alphabetically
+            List<String> keys = new ArrayList<>();
+            node.fieldNames().forEachRemaining(keys::add);
+            Collections.sort(keys);
+            
+            for (String key : keys) {
+                JsonNode value = node.get(key);
+                
+                // Special handling for "fields" array - sort by field name
+                if (key.equals("fields") && value.isArray()) {
+                    ArrayNode sortedFields = JSON_MAPPER.createArrayNode();
+                    List<JsonNode> fieldList = new ArrayList<>();
+                    value.forEach(fieldList::add);
+                    
+                    // Sort fields by name
+                    fieldList.sort((a, b) -> {
+                        String nameA = a.has("name") ? a.get("name").asText() : "";
+                        String nameB = b.has("name") ? b.get("name").asText() : "";
+                        return nameA.compareTo(nameB);
+                    });
+                    
+                    // Recursively normalize each field
+                    for (JsonNode field : fieldList) {
+                        sortedFields.add(normalizeSchemaJson(field));
+                    }
+                    obj.set(key, sortedFields);
+                } else {
+                    obj.set(key, normalizeSchemaJson(value));
+                }
+            }
+            return obj;
+        } else if (node.isArray()) {
+            ArrayNode arr = JSON_MAPPER.createArrayNode();
+            node.forEach(item -> arr.add(normalizeSchemaJson(item)));
+            return arr;
+        }
+        return node;
     }
 
     /// Detect changes between current and next TableAvroSchemas.

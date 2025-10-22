@@ -1,0 +1,20 @@
+{
+  "type": "record",
+  "name": "Person",
+  "namespace": "io.snyk.skemium.test",
+  "fields": [
+    {
+      "name": "email",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "id",
+      "type": "long"
+    },
+    {
+      "name": "name",
+      "type": "string"
+    }
+  ]
+}
