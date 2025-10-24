@@ -52,7 +52,7 @@
     <ver.commons-codec>1.18.0</ver.commons-codec>
     <ver.commons-compress>1.27.1</ver.commons-compress>
     <ver.commons-lang3>3.18.0</ver.commons-lang3>
-    <ver.debezium>3.0.8.Final</ver.debezium>
+    <ver.debezium>3.3.0.Final</ver.debezium>
     <ver.jackson>2.19.0</ver.jackson>
     <ver.jgit>7.3.0.202506031305-r</ver.jgit>
     <ver.junit-jupiter>5.13.1</ver.junit-jupiter>
