@@ -53,7 +53,7 @@
     <ver.commons-compress>1.27.1</ver.commons-compress>
     <ver.commons-lang3>3.18.0</ver.commons-lang3>
     <ver.debezium>3.0.8.Final</ver.debezium>
-    <ver.jackson>2.19.0</ver.jackson>
+    <ver.jackson>2.20</ver.jackson>
     <ver.jgit>7.3.0.202506031305-r</ver.jgit>
     <ver.junit-jupiter>5.13.1</ver.junit-jupiter>
     <ver.kafka-connect-avro-converter>7.9.2</ver.kafka-connect-avro-converter>
