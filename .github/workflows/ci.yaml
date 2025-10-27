@@ -40,11 +40,13 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
-          args: --sarif-file-output=snyk.sarif
+          args: --sarif-file-output=${{ github.workspace }}/snyk.sarif
+      - run: ls ${{ github.workspace }}
+      - run: cat ${{ github.workspace }}/snyk.sarif
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: snyk.sarif
+          sarif_file: ${{ github.workspace }}/snyk.sarif
 
   build_and_test:
     name: Build & Test
