@@ -39,15 +39,17 @@ jobs:
           distribution: adopt
           cache: maven
       - uses: snyk/actions/setup@master # Should probably pin this...
+      - run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Run Snyk to check for vulnerabilities
-        working-directory: $GITHUB_WORKSPACE
-        run: snyk test --sarif-file-output=$GITHUB_WORKSPACE/snyk.sarif
+        working-directory: ${{ env.GITHUB_WORKSPACE }}
+        run: snyk test --sarif-file-output=${{ env.GITHUB_WORKSPACE }}/snyk.sarif
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      - run: ls $GITHUB_WORKSPACE
-      - run: cat $GITHUB_WORKSPACE/snyk.sarif || true
-      - run: find $GITHUB_WORKSPACE -type f -name 'snyk.sarif' 2>&1 | grep snyk.sarif || true
+      - run: ls ${{ env.GITHUB_WORKSPACE }}
+      - run: cat ${{ env.GITHUB_WORKSPACE }}/snyk.sarif || true
+      - run: find ${{ env.GITHUB_WORKSPACE }} -type f -name 'snyk.sarif' 2>&1 | grep snyk.sarif || true
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v4
         with:
