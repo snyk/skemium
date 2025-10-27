@@ -40,7 +40,7 @@ There is sometimes confusion between “making a DB Schema” vs “making a [Sc
   1. Debezium detects it (reading the [RDBMS WAL] and the `DESCRIBE TABLE` command)
   2. Debezium's `Producer` attempts to create a new Schema version for the associated [schema subject]
      1. _either_ fails if the change violates the configured [Schema Compatibility]
-     2. _or_ succeeds in publishing a new version for the [schema subject] creation was successful 
+     2. _or_ succeeds in publishing a new version for the [schema subject] creation was successful
   3. Debezium's `Producer` resumes producing to the related Kafka Topic
 
 When 2.1. above happens, Debezium stops producing and in turns stops consuming the [RDBMS WAL]:
@@ -103,10 +103,10 @@ of [Debezium] and [Schema Registry]. Specifically, the following 2 packages do t
 
 To dig deeper, please look at the [`pom.xml`](./pom.xml).
 
-### Key classes "borrowed" 
+### Key classes "borrowed"
 
 Skemium design brings together [Debezium][Debezium source code] and
-[Schema Registry][Schema Registry source code] codebases, using the Apache [Avro] codebase as _lingua franca_: 
+[Schema Registry][Schema Registry source code] codebases, using the Apache [Avro] codebase as _lingua franca_:
 
 * `TableSchemaFetcher` extracts a `List<io.debezium.relational.TableSchema>`, using the Debezium's
   RDBMS-specific connector source code to connect and query the DB schema
@@ -116,7 +116,7 @@ Skemium design brings together [Debezium][Debezium source code] and
   the provided constructor
 * `io.confluent.kafka.schemaregistry.CompatibilityChecker` is used to compare current and next
   versions of `io.confluent.kafka.schemaregistry.avro.AvroSchema`,
-  applying the desired `io.confluent.kafka.schemaregistry.CompatibilityLevel` 
+  applying the desired `io.confluent.kafka.schemaregistry.CompatibilityLevel`
 
 This gives us confidence that the generation of the Avro Schema, as well as the compatibility check, are the exact
 same that Debezium will apply in production.
@@ -332,8 +332,8 @@ Here are some major features that we haven't had time to tackle yet:
 * [ ] Support custom key definition for a table, similar to what
   [`message.key.columns`](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-property-message-key-columns)
   allows when configuring Debezium. This is useful when an arbitrary key is desired or the table is missing a primary key.
-* [ ] Support for _generating_ and _comparing_ [JSON Schema] 
-* [ ] Support for _generating_ and _comparing_ [Protobuf] schemas 
+* [ ] Support for _generating_ and _comparing_ [JSON Schema]
+* [ ] Support for _generating_ and _comparing_ [Protobuf] schemas
 
 Of course, small contributions and bugfixes are also _very_ welcome.
 
@@ -436,6 +436,18 @@ After a bit of experimentation, we determined that `-march=compatibility` was th
 If you have taken advantage of the [asdf] setup (i.e. `asdf install`), you have already installed https://taskfile.dev/.
 Most frequently used _tasks_ are already configured in the [Taskfile](./Taskfile.yml). Give it a go!
 
+## Cutting a new release
+
+The CI is setup to create a new release when a new tag in the format `vX.Y.Z` is pushed to the repository.
+We use [gh-release] to handle most of the process (see [.github/workflows/release-*.yaml](./.github/workflows) for details),
+and the only manual step is to:
+
+1. ensure all PRs we aim to merge and release are merged
+2. figure out what the next version should be, by following [Semantic Versioning] principles: e.g. `$NEXT_VERSION`
+3. tag `main` with the new version: `task tag-version -- $NEXT_VERSION`
+4. push the new tag to the `main` branch of the repo: `git push --tags`
+5. Go to https://github.com/snyk/skemium/actions and confirm the release process has started
+
 # Credits
 
 As any open source tool, this builds on the shoulders of the great work of others (see the [pom.xml](./pom.xml)).
@@ -452,21 +464,23 @@ But I want to especially thank 2 projects for the _core_ of the functionality:
 
 **Made with 💜 by Snyk**
 
-[Debezium]: https://debezium.io/
-[Debezium source code]: https://github.com/debezium/debezium
-[CDC]: https://en.wikipedia.org/wiki/Change_data_capture
 [Avro]: https://avro.apache.org/
-[Debezium CDC Source Connector]: https://debezium.io/documentation/reference/stable/connectors/index.html
-[Schema Registry]: https://docs.confluent.io/platform/6.2/schema-registry/index.html
-[Schema Registry source code]: https://github.com/confluentinc/schema-registry
-[Debezium Avro Serialization]: https://debezium.io/documentation/reference/stable/configuration/avro.html
-[JSON Schema]: https://json-schema.org/
-[Protobuf]: https://protobuf.dev/
-[Schema Compatibility]: https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html#compatibility-types
+[CDC]: https://en.wikipedia.org/wiki/Change_data_capture
 [CI]: https://www.atlassian.com/continuous-delivery/continuous-integration
-[asdf]: https://asdf-vm.com/
+[Debezium Avro Serialization]: https://debezium.io/documentation/reference/stable/configuration/avro.html
+[Debezium CDC Source Connector]: https://debezium.io/documentation/reference/stable/connectors/index.html
+[Debezium source code]: https://github.com/debezium/debezium
+[Debezium]: https://debezium.io/
 [GraalVM]: https://www.graalvm.org/
-[native-image]: https://www.graalvm.org/latest/reference-manual/native-image/
+[JSON Schema]: https://json-schema.org/
 [Kafka Message Key]: https://www.confluent.io/learn/kafka-message-key/
+[Protobuf]: https://protobuf.dev/
 [RDBMS WAL]: https://debezium.io/documentation/reference/stable/connectors/postgresql.html#how-the-postgresql-connector-works
+[Schema Compatibility]: https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html#compatibility-types
+[Schema Registry source code]: https://github.com/confluentinc/schema-registry
+[Schema Registry]: https://docs.confluent.io/platform/6.2/schema-registry/index.html
+[Semantic Versioning]: https://semver.org/
+[asdf]: https://asdf-vm.com/
+[gh-release]: https://github.com/softprops/action-gh-release
+[native-image]: https://www.graalvm.org/latest/reference-manual/native-image/
 [schema subject]: https://developer.confluent.io/courses/schema-registry/schema-subjects/

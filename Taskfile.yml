@@ -24,6 +24,11 @@ tasks:
     cmds:
       - mvn package native:compile-no-fork -DskipTests
 
+  tag-version:
+    cmds:
+      - mvn versions:set -DnewVersion={{.CLI_ARGS}}
+      - git tag v{{.CLI_ARGS}}
+
   snyk.test:
     cmds:
       - snyk test . --severity-threshold={{.SNYK_SEVERITY}}  --all-projects
