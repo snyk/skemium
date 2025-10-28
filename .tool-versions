@@ -12,7 +12,7 @@ java adoptopenjdk-21.0.7+6.0.LTS
 #java oracle-graalvm-21.0.7
 # Plugin: https://github.com/nirfuchs/asdf-snyk
 # Releases: https://github.com/snyk/cli/releases
-snyk 1.1297.1
+snyk 1.1300.1
 # Plugin: https://github.com/particledecay/asdf-task
 # Changelog: https://taskfile.dev/changelog/
-task 3.44.0
+task 3.45.4
