@@ -14,16 +14,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 
-/**
- * Base class for comparison commands that provides shared functionality.
- * <p>
- * Features provided:
- * <ul>
- * <li>Common comparison options (compatibility level, output file)</li>
- * <li>Output file validation and writing</li>
- * <li>Shared logging and error handling patterns</li>
- * </ul>
- */
+/// Base class for comparison commands that provides shared functionality.
+///
+/// Features provided:
+///
+///   - Common comparison options (compatibility level, output file)
+///   - Output file validation and writing
+///   - Shared logging and error handling patterns
+///
 public abstract class BaseComparisonCommand extends BaseCommand {
     private static final Logger LOG = LoggerFactory.getLogger(BaseComparisonCommand.class);
 
@@ -54,12 +52,10 @@ public abstract class BaseComparisonCommand extends BaseCommand {
     )
     protected Path output = null;
 
-    /**
-     * Validates the output file parameter if provided.
-     * Logs warnings for existing files that will be overridden.
-     * 
-     * @throws CommandLine.ParameterException if output path is invalid
-     */
+    /// Validates the output file parameter if provided.
+    /// Logs warnings for existing files that will be overridden.
+    ///
+    /// @throws CommandLine.ParameterException if output path is invalid
     protected void validateOutput() throws CommandLine.ParameterException {
         if (output != null) {
             final File outputFile = this.output.toFile();
@@ -74,13 +70,11 @@ public abstract class BaseComparisonCommand extends BaseCommand {
         }
     }
 
-    /**
-     * Writes the result to the output file if specified, otherwise logs that output
-     * will go to stdout.
-     * 
-     * @param result the result object to write as JSON
-     * @throws IOException if writing to file fails
-     */
+    /// Writes the result to the output file if specified, otherwise logs that output
+    /// will go to stdout.
+    ///
+    /// @param result the result object to write as JSON
+    /// @throws IOException if writing to file fails
     protected void writeOutput(Object result) throws IOException {
         if (output != null) {
             LOG.debug("Writing result to file: {}", output.toAbsolutePath().normalize());

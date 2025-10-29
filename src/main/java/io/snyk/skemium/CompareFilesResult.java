@@ -13,52 +13,44 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-/**
- * Describes the result of comparing two Avro schema files.
- * 
- * @param currentSchemaFile  [Path] to the current/baseline schema file
- * @param nextSchemaFile     [Path] to the next/target schema file
- * @param compatibilityLevel [CompatibilityLevel] used during the comparison
- * @param incompatibilities  [List] of incompatibility error messages, empty if
- *                           compatible
- * @param isCompatible       true if schemas are compatible according to the
- *                           specified level
- * @param hasSchemaChanges   true if schemas are different (regardless of
- *                           compatibility)
- */
-public record SchemaComparisonResult(
+/// Describes the result of comparing two Avro schema files.
+///
+/// @param currentSchemaFile  [Path] to the current/baseline schema file
+/// @param nextSchemaFile     [Path] to the next/target schema file
+/// @param compatibilityLevel [CompatibilityLevel] used during the comparison
+/// @param incompatibilities  [List] of incompatibility error messages, empty if
+///                           compatible
+/// @param isCompatible       true if schemas are compatible according to the
+///                           specified level
+/// @param hasSchemaChanges   true if schemas are different (regardless of
+///                           compatibility)
+public record CompareFilesResult(
         @JsonProperty(required = true, index = 0) @Nonnull Path currentSchemaFile,
         @JsonProperty(required = true, index = 1) @Nonnull Path nextSchemaFile,
         @JsonProperty(required = true, index = 2) @Nonnull CompatibilityLevel compatibilityLevel,
         @JsonProperty(required = true, index = 3) @Nonnull List<String> incompatibilities,
         @JsonProperty(required = true, index = 4) boolean isCompatible,
         @JsonProperty(required = true, index = 5) boolean hasSchemaChanges) {
-    private static final Logger LOG = LoggerFactory.getLogger(SchemaComparisonResult.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CompareFilesResult.class);
 
-    /**
-     * The filename for the Avro schema of this result record.
-     */
-    public static final Path AVRO_SCHEMA_FILENAME = Path.of("skemium.schema-comparison.result.avsc");
+    /// The filename for the Avro schema of this result record.
+    public static final Path AVRO_SCHEMA_FILENAME = Path.of("skemium.compare-files.result.avsc");
 
-    /**
-     * Returns the total number of incompatibilities found.
-     * 
-     * @return number of incompatibility issues
-     */
+    /// Returns the total number of incompatibilities found.
+    ///
+    /// @return number of incompatibility issues
     public int incompatibilitiesTotal() {
         return incompatibilities.size();
     }
 
-    /**
-     * Creates a SchemaComparisonResult by comparing two Avro schema files.
-     * 
-     * @param currentSchemaFile  path to the current/baseline schema file
-     * @param nextSchemaFile     path to the next/target schema file
-     * @param compatibilityLevel compatibility level to apply during comparison
-     * @return SchemaComparisonResult with comparison results
-     * @throws IOException if files cannot be read or parsed
-     */
-    public static SchemaComparisonResult build(
+    /// Creates a SchemaComparisonResult by comparing two Avro schema files.
+    ///
+    /// @param currentSchemaFile  path to the current/baseline schema file
+    /// @param nextSchemaFile     path to the next/target schema file
+    /// @param compatibilityLevel compatibility level to apply during comparison
+    /// @return SchemaComparisonResult with comparison results
+    /// @throws IOException if files cannot be read or parsed
+    public static CompareFilesResult build(
             @Nonnull Path currentSchemaFile,
             @Nonnull Path nextSchemaFile,
             @Nonnull CompatibilityLevel compatibilityLevel) throws IOException {
@@ -117,7 +109,7 @@ public record SchemaComparisonResult(
             LOG.debug("No schema changes detected");
         }
 
-        return new SchemaComparisonResult(
+        return new CompareFilesResult(
                 currentSchemaFile,
                 nextSchemaFile,
                 compatibilityLevel,

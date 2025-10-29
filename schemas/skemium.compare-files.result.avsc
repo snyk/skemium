@@ -1,6 +1,6 @@
 {
   "type" : "record",
-  "name" : "SchemaComparisonResult",
+  "name" : "CompareFilesResult",
   "namespace" : "io.snyk.skemium",
   "fields" : [ {
     "name" : "currentSchemaFile",

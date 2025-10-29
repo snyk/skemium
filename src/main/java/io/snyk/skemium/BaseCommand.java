@@ -9,14 +9,12 @@ import java.util.concurrent.Callable;
 
 import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 
-/**
- * Base class for all commands (i.e., shared {@link Option}).
- * <p>
- * Features provided:
- * <ul>
- *     <li>Configure logging level via a {@code -v} "verbosity" flag</li>
- * </ul>
- */
+/// Base class for all commands (i.e., shared [Option]).
+///
+/// Features provided:
+///
+///   - Configure logging level via a `-v` "verbosity" flag
+///
 public abstract class BaseCommand implements Callable<Integer> {
     private static final Logger LOG = LoggerFactory.getLogger(BaseCommand.class);
 

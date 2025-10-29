@@ -2,7 +2,6 @@ package io.snyk.skemium;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.confluent.kafka.schemaregistry.CompatibilityLevel;
-import io.snyk.skemium.CompareCommand.Result;
 import io.snyk.skemium.helpers.Avro;
 import io.snyk.skemium.helpers.JSON;
 import org.junit.jupiter.api.AfterEach;
@@ -55,7 +54,7 @@ class CompareCommandTest extends WithPostgresContainer {
 
     @Test
     void refreshCompareResultFileSchema() throws JsonProcessingException, FileNotFoundException {
-        Avro.saveAvroSchemaForType(Result.class, Result.AVRO_SCHEMA_FILENAME);
+        Avro.saveAvroSchemaForType(CompareResult.class, CompareResult.AVRO_SCHEMA_FILENAME);
     }
 
     @Test
@@ -76,7 +75,7 @@ class CompareCommandTest extends WithPostgresContainer {
         ));
         FileUtils.copyDirectory(CURR_DIR.toFile(), NEXT_DIR.toFile());
 
-        final Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        final CompareResult res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
 
         assertEquals(CompatibilityLevel.BACKWARD, res.compatibilityLevel());
         assertEquals(Map.of(
@@ -141,7 +140,7 @@ class CompareCommandTest extends WithPostgresContainer {
                 NEXT_DIR.toAbsolutePath().toString()
         ));
 
-        final Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        final CompareResult res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
 
         assertEquals(CompatibilityLevel.BACKWARD, res.compatibilityLevel());
         assertEquals(Map.of(
@@ -202,7 +201,7 @@ class CompareCommandTest extends WithPostgresContainer {
         ));
 
         // Change is not BACKWARD compatible
-        Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        CompareResult res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.keyIncompatibilities().get("chinook.public.artist").size());
         assertEquals(2, res.valueIncompatibilitiesTotal());
@@ -213,7 +212,7 @@ class CompareCommandTest extends WithPostgresContainer {
         assertEquals(Set.of(), res.addedTables());
 
         // Change would be BACKWARD compatible, if it was in reverse (from NEXT to CURR)
-        res = Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
+        res = CompareResult.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -221,7 +220,7 @@ class CompareCommandTest extends WithPostgresContainer {
         assertEquals(Set.of(), res.addedTables());
 
         // Change is FORWARD compatible
-        res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
+        res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -269,7 +268,7 @@ class CompareCommandTest extends WithPostgresContainer {
         ));
 
         // Change is not BACKWARD compatible
-        Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        CompareResult res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.keyIncompatibilities().get("chinook.public.artist").size());
         assertEquals(2, res.valueIncompatibilitiesTotal());
@@ -280,7 +279,7 @@ class CompareCommandTest extends WithPostgresContainer {
         assertEquals(Set.of(), res.addedTables());
 
         // Change would be BACKWARD compatible, if it was in reverse (from NEXT to CURR)
-        res = Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
+        res = CompareResult.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -288,7 +287,7 @@ class CompareCommandTest extends WithPostgresContainer {
         assertEquals(Set.of(), res.addedTables());
 
         // Change is FORWARD compatible
-        res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
+        res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -345,7 +344,7 @@ class CompareCommandTest extends WithPostgresContainer {
                 NEXT_DIR.toAbsolutePath().toString()
         ));
 
-        final Result resFromOutputFile = JSON.from(OUTPUT_FILE.toFile(), Result.class);
+        final CompareResult resFromOutputFile = JSON.from(OUTPUT_FILE.toFile(), CompareResult.class);
         assertEquals(0, resFromOutputFile.keyIncompatibilitiesTotal());
         assertEquals(0, resFromOutputFile.keyIncompatibilities().get("chinook.public.employee").size());
         assertEquals(2, resFromOutputFile.valueIncompatibilitiesTotal());
@@ -383,7 +382,7 @@ class CompareCommandTest extends WithPostgresContainer {
         final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
         final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/next");
 
-        final Result result = Result.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+        final CompareResult result = CompareResult.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
 
         // Verify schema changes are detected
         assertTrue(result.hasAnySchemaChanges());
@@ -403,10 +402,9 @@ class CompareCommandTest extends WithPostgresContainer {
     @Test
     public void shouldReportNoChangesWhenSchemasAreIdentical() throws IOException {
         final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
-        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/current"); // Same
-        // directory
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/current"); // Same directory
 
-        final Result result = Result.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+        final CompareResult result = CompareResult.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
 
         // Verify no changes are detected
         assertFalse(result.hasAnySchemaChanges());
@@ -426,8 +424,7 @@ class CompareCommandTest extends WithPostgresContainer {
     @Test
     public void shouldSucceedInCIModeWhenNoChanges() throws IOException {
         final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
-        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/current"); // Same
-        // directory
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/current"); // Same directory
 
         final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
 
@@ -451,7 +448,7 @@ class CompareCommandTest extends WithPostgresContainer {
         final Path currDir = Path.of("src/test/resources/schema_change-non_backward_compatible/current");
         final Path nextDir = Path.of("src/test/resources/schema_change-non_backward_compatible/next");
 
-        final Result result = Result.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+        final CompareResult result = CompareResult.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
 
         // Verify schema changes are detected
         assertTrue(result.hasAnySchemaChanges());
@@ -473,7 +470,7 @@ class CompareCommandTest extends WithPostgresContainer {
         assertEquals(0, cmdLine.execute("--compatibility", CompatibilityLevel.BACKWARD.toString(), "--output", OUTPUT_FILE.toAbsolutePath().toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
 
         // Load result from file and verify new fields are present
-        final Result result = JSON.from(OUTPUT_FILE.toFile(), Result.class);
+        final CompareResult result = JSON.from(OUTPUT_FILE.toFile(), CompareResult.class);
 
         // Verify new change tracking fields are populated
         assertNotNull(result.keySchemaChanged());
@@ -500,7 +497,7 @@ class CompareCommandTest extends WithPostgresContainer {
         final Path currDir = Path.of("src/test/resources/schema_change-compatible_with_table_addition/current");
         final Path nextDir = Path.of("src/test/resources/schema_change-compatible_with_table_addition/next");
 
-        final Result result = Result.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+        final CompareResult result = CompareResult.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
 
         // Verify both schema changes and table additions are detected
         assertTrue(result.hasAnySchemaChanges());
@@ -532,7 +529,7 @@ class CompareCommandTest extends WithPostgresContainer {
         final Path currDir = Path.of("src/test/resources/schema_change-no_changes/current");
         final Path nextDir = Path.of("src/test/resources/schema_change-no_changes/next");
 
-        final Result result = Result.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+        final CompareResult result = CompareResult.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
 
         // Verify absolutely no changes are detected
         assertFalse(result.hasAnySchemaChanges());

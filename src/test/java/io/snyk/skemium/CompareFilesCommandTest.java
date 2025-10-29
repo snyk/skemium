@@ -41,14 +41,14 @@ class CompareFilesCommandTest {
 
     @Test
     void refreshSchemaComparisonResultFileSchema() throws JsonProcessingException, FileNotFoundException {
-        Avro.saveAvroSchemaForType(SchemaComparisonResult.class, SchemaComparisonResult.AVRO_SCHEMA_FILENAME);
+        Avro.saveAvroSchemaForType(CompareFilesResult.class, CompareFilesResult.AVRO_SCHEMA_FILENAME);
     }
 
     @Test
     void shouldReportCompatibleWhenComparingSameSchema() throws IOException {
         final Path schemaFile = validSchemasDir.resolve("person-v1.avsc");
 
-        final SchemaComparisonResult result = SchemaComparisonResult.build(
+        final CompareFilesResult result = CompareFilesResult.build(
                 schemaFile, schemaFile, CompatibilityLevel.BACKWARD);
 
         assertTrue(result.isCompatible());
@@ -63,7 +63,7 @@ class CompareFilesCommandTest {
         final Path currentSchema = validSchemasDir.resolve("person-v1.avsc");
         final Path nextSchema = validSchemasDir.resolve("person-v2-compatible.avsc");
 
-        final SchemaComparisonResult result = SchemaComparisonResult.build(
+        final CompareFilesResult result = CompareFilesResult.build(
                 currentSchema, nextSchema, CompatibilityLevel.BACKWARD);
 
         assertTrue(result.isCompatible());
@@ -76,7 +76,7 @@ class CompareFilesCommandTest {
         final Path currentSchema = validSchemasDir.resolve("person-v1.avsc");
         final Path nextSchema = validSchemasDir.resolve("person-v2-incompatible.avsc");
 
-        final SchemaComparisonResult result = SchemaComparisonResult.build(
+        final CompareFilesResult result = CompareFilesResult.build(
                 currentSchema, nextSchema, CompatibilityLevel.BACKWARD);
 
         assertFalse(result.isCompatible());
@@ -90,7 +90,7 @@ class CompareFilesCommandTest {
         final Path currentSchema = validSchemasDir.resolve("person-v1.avsc");
         final Path nextSchema = validSchemasDir.resolve("person-v2-compatible.avsc");
 
-        final SchemaComparisonResult result = SchemaComparisonResult.build(
+        final CompareFilesResult result = CompareFilesResult.build(
                 currentSchema, nextSchema, CompatibilityLevel.BACKWARD);
 
         assertTrue(result.isCompatible()); // Should be compatible
@@ -102,7 +102,7 @@ class CompareFilesCommandTest {
     void shouldNotDetectSchemaChangesWhenSchemasAreIdentical() throws IOException {
         final Path schemaFile = validSchemasDir.resolve("person-v1.avsc");
 
-        final SchemaComparisonResult result = SchemaComparisonResult.build(
+        final CompareFilesResult result = CompareFilesResult.build(
                 schemaFile, schemaFile, CompatibilityLevel.BACKWARD);
 
         assertTrue(result.isCompatible());

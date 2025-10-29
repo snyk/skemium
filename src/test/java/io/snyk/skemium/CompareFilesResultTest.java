@@ -10,7 +10,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class SchemaComparisonResultTest {
+class CompareFilesResultTest {
     private final Path testResourcesDir = Paths.get("src/test/resources/compare-files");
     private final Path validSchemasDir = testResourcesDir.resolve("valid-schemas");
     private final Path invalidSchemasDir = testResourcesDir.resolve("invalid-schemas");
@@ -20,7 +20,7 @@ class SchemaComparisonResultTest {
         final Path currentSchema = validSchemasDir.resolve("person-v1.avsc");
         final Path nextSchema = validSchemasDir.resolve("person-v2-compatible.avsc");
 
-        final SchemaComparisonResult result = SchemaComparisonResult.build(
+        final CompareFilesResult result = CompareFilesResult.build(
                 currentSchema, nextSchema, CompatibilityLevel.BACKWARD);
 
         assertNotNull(result);
@@ -37,7 +37,7 @@ class SchemaComparisonResultTest {
         final Path currentSchema = validSchemasDir.resolve("person-v1.avsc");
         final Path nextSchema = validSchemasDir.resolve("person-v2-incompatible.avsc");
 
-        final SchemaComparisonResult result = SchemaComparisonResult.build(
+        final CompareFilesResult result = CompareFilesResult.build(
                 currentSchema, nextSchema, CompatibilityLevel.BACKWARD);
 
         assertNotNull(result);
@@ -57,7 +57,7 @@ class SchemaComparisonResultTest {
 
         // Test different compatibility levels
         for (CompatibilityLevel level : CompatibilityLevel.values()) {
-            final SchemaComparisonResult result = SchemaComparisonResult.build(
+            final CompareFilesResult result = CompareFilesResult.build(
                     currentSchema, nextSchema, level);
 
             assertNotNull(result);
@@ -75,7 +75,7 @@ class SchemaComparisonResultTest {
         final Path nextSchema = validSchemasDir.resolve("person-v1.avsc");
 
         assertThrows(IOException.class, () -> {
-            SchemaComparisonResult.build(nonExistentFile, nextSchema, CompatibilityLevel.BACKWARD);
+            CompareFilesResult.build(nonExistentFile, nextSchema, CompatibilityLevel.BACKWARD);
         });
     }
 
@@ -85,7 +85,7 @@ class SchemaComparisonResultTest {
         final Path nonExistentFile = validSchemasDir.resolve("does-not-exist.avsc");
 
         assertThrows(IOException.class, () -> {
-            SchemaComparisonResult.build(currentSchema, nonExistentFile, CompatibilityLevel.BACKWARD);
+            CompareFilesResult.build(currentSchema, nonExistentFile, CompatibilityLevel.BACKWARD);
         });
     }
 
@@ -95,7 +95,7 @@ class SchemaComparisonResultTest {
         final Path validSchema = validSchemasDir.resolve("person-v1.avsc");
 
         final IOException exception = assertThrows(IOException.class, () -> {
-            SchemaComparisonResult.build(malformedSchema, validSchema, CompatibilityLevel.BACKWARD);
+            CompareFilesResult.build(malformedSchema, validSchema, CompatibilityLevel.BACKWARD);
         });
 
         assertTrue(exception.getMessage().contains("Failed to parse current schema file"));
@@ -108,7 +108,7 @@ class SchemaComparisonResultTest {
         final Path malformedSchema = invalidSchemasDir.resolve("malformed.json");
 
         final IOException exception = assertThrows(IOException.class, () -> {
-            SchemaComparisonResult.build(validSchema, malformedSchema, CompatibilityLevel.BACKWARD);
+            CompareFilesResult.build(validSchema, malformedSchema, CompatibilityLevel.BACKWARD);
         });
 
         assertTrue(exception.getMessage().contains("Failed to parse next schema file"));
@@ -121,7 +121,7 @@ class SchemaComparisonResultTest {
         final Path emptySchema = invalidSchemasDir.resolve("empty.avsc");
 
         final IOException exception = assertThrows(IOException.class, () -> {
-            SchemaComparisonResult.build(validSchema, emptySchema, CompatibilityLevel.BACKWARD);
+            CompareFilesResult.build(validSchema, emptySchema, CompatibilityLevel.BACKWARD);
         });
 
         assertTrue(exception.getMessage().contains("Failed to parse next schema file"));
@@ -133,7 +133,7 @@ class SchemaComparisonResultTest {
         final Path invalidAvroSchema = invalidSchemasDir.resolve("invalid-avro.avsc");
 
         final IOException exception = assertThrows(IOException.class, () -> {
-            SchemaComparisonResult.build(validSchema, invalidAvroSchema, CompatibilityLevel.BACKWARD);
+            CompareFilesResult.build(validSchema, invalidAvroSchema, CompatibilityLevel.BACKWARD);
         });
 
         assertTrue(exception.getMessage().contains("Failed to parse next schema file"));
@@ -143,7 +143,7 @@ class SchemaComparisonResultTest {
     void shouldHandleIdenticalSchemas() throws IOException {
         final Path schema = validSchemasDir.resolve("person-v1.avsc");
 
-        final SchemaComparisonResult result = SchemaComparisonResult.build(
+        final CompareFilesResult result = CompareFilesResult.build(
                 schema, schema, CompatibilityLevel.BACKWARD);
 
         assertTrue(result.isCompatible());
@@ -156,7 +156,7 @@ class SchemaComparisonResultTest {
         final Path currentSchema = validSchemasDir.resolve("person-v1.avsc");
         final Path nextSchema = validSchemasDir.resolve("person-v2-compatible.avsc");
 
-        final SchemaComparisonResult result = SchemaComparisonResult.build(
+        final CompareFilesResult result = CompareFilesResult.build(
                 currentSchema, nextSchema, CompatibilityLevel.FORWARD);
 
         // Test that all required fields are present and have expected types

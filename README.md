@@ -402,7 +402,7 @@ The `compare-files` command can optionally save the result to an `--output` file
 This summarises the two schema files that were compared, what [Schema Compatibility] was applied,
 and what incompatibilities (if any) were identified.
 
-The schema for this file is at [<prj_root>/schemas/skemium.schema-comparison.result.avsc](./schemas/skemium.schema-comparison.result.avsc).
+The schema for this file is at [<prj_root>/schemas/skemium.compare-files.result.avsc](./schemas/skemium.compare-files.result.avsc).
 
 # Interested in contributing?
 

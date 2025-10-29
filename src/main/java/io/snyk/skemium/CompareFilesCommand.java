@@ -47,7 +47,7 @@ public class CompareFilesCommand extends BaseComparisonCommand {
         logInput();
 
         try {
-            final SchemaComparisonResult result = SchemaComparisonResult.build(
+            final CompareFilesResult result = CompareFilesResult.build(
                     currentSchemaFile,
                     nextSchemaFile,
                     compatibilityLevel);
