@@ -243,12 +243,32 @@ The directories are identified as _`CURRENT`_ and _`NEXT`_:
 `compare` executes a table-by-table [Schema Compatibility] check, and reports on the result.
 Exit Code will be `0` in case of success, `1` otherwise.
 
-### Table discrepancies
+### Schema changes and CI mode
 
-Additionally, `compare` reports (via `WARN` logging) if discrepancies of tables (additions/removals)
-can be identified between `CURRENT` and `NEXT`.
-The flag `--ci-mode` can be used to _force_ a failure in case of these discrepancies:
-**this is ideally used in the context of [CI] automations**.
+The `compare` command reports (via `WARN` logging) if discrepancies are detected between `CURRENT` and `NEXT`:
+
+1. **Table additions/removals**: When tables are added or removed between the two schema directories
+2. **Schema modifications**: When existing table schemas are modified (even if the changes are compatible)
+
+The flag `--ci-mode` can be used to _force_ a failure in case of **any** schema changes:
+
+* **Table discrepancies**: Additions or removals of tables
+* **Schema changes**: Modifications to existing table schemas (key, value, or envelope schemas)
+
+**This enhanced CI mode is ideally used in CI/CD automations** to ensure that:
+
+* Engineers are forced to acknowledge schema changes by updating their schema copies
+* All schema modifications are tracked and reviewed, even if they are compatible
+* Schema drift is prevented by requiring explicit acknowledgment of changes
+
+#### CI Mode Behavior
+
+| Scenario                    | Normal Mode                | CI Mode    |
+| --------------------------- | -------------------------- | ---------- |
+| No changes                  | ✅ Success                 | ✅ Success |
+| Compatible schema changes   | ✅ Success (with warnings) | ❌ Failure |
+| Incompatible schema changes | ❌ Failure                 | ❌ Failure |
+| Table additions/removals    | ✅ Success (with warnings) | ❌ Failure |
 
 ### JSON output
 
@@ -281,7 +301,61 @@ Options:
                           See: https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html
                             Values: NONE, BACKWARD, BACKWARD_TRANSITIVE, FORWARD, FORWARD_TRANSITIVE, FULL, FULL_TRANSITIVE
                             Default: BACKWARD
-  -i, --ci, --ci-mode     CI mode - Fail when a Table is only detected in one of the two directories (env: CI_MODE - optional)
+  -i, --ci, --ci-mode     CI mode - Fail when schema changes are detected (table additions/removals or schema modifications) (env: CI_MODE - optional)
+                            Default: false
+  -o, --output=<output>   Output file (JSON); overridden if exists (env: OUTPUT_FILE - optional)
+  -v, --verbose           Logging Verbosity - use multiple -v to increase (default: ERROR)
+```
+</details>
+
+## `compare-files` command
+
+The `compare-files` command compares two individual Avro Schema files (`.avsc`) directly, without requiring them to be part of a database-generated schema directory. This is useful for comparing bespoke or custom Avro schemas.
+
+The command takes 2 Avro schema files and compares them applying the given [Schema Compatibility] type:
+
+* `CURR_SCHEMA_FILE`: The current version of the Avro schema file
+* `NEXT_SCHEMA_FILE`: The next version of the Avro schema file
+
+`compare-files` executes a [Schema Compatibility] check and reports on the result.
+Exit Code will be `0` in case of success, `1` otherwise.
+
+### CI mode for file comparison
+
+Similar to the `compare` command, `compare-files` supports a `--ci-mode` flag that will force a failure when any schema changes are detected, even if they are compatible. This ensures that all schema modifications are explicitly acknowledged.
+
+### JSON output
+
+The output of `compare-files` can be stored in a JSON file using the `--output` option ([schema](#schema-file-comparison-result)).
+
+### Help
+
+<details>
+<summary>Run `skemium help compare-files` for usage instructions</summary>
+
+```shell
+$ skemium help compare-files
+
+Compares two Avro Schema (.avsc) files
+
+skemium compare-files [-iv] [-c=<compatibilityLevel>] [-o=<output>] CURR_SCHEMA_FILE NEXT_SCHEMA_FILE
+
+Description:
+
+Given 2 Avro Schema files (.avsc), compares them according to the specified Compatibility Level.
+This command is designed for comparing bespoke/custom Avro schemas that are not generated from database tables.
+
+Parameters:
+      CURR_SCHEMA_FILE    Path to the CURRENT Avro schema file (.avsc)
+      NEXT_SCHEMA_FILE    Path to the NEXT Avro schema file (.avsc)
+
+Options:
+  -c, --compatibility=<compatibilityLevel>
+                          Compatibility Level (env: COMPATIBILITY - optional)
+                          See: https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html
+                            Values: NONE, BACKWARD, BACKWARD_TRANSITIVE, FORWARD, FORWARD_TRANSITIVE, FULL, FULL_TRANSITIVE
+                            Default: BACKWARD
+  -i, --ci, --ci-mode     CI mode - Fail when schema changes are detected (env: CI_MODE - optional)
                             Default: false
   -o, --output=<output>   Output file (JSON); overridden if exists (env: OUTPUT_FILE - optional)
   -v, --verbose           Logging Verbosity - use multiple -v to increase (default: ERROR)
@@ -321,6 +395,14 @@ This summarises what was compared, what [Schema Compatibility] was applied,
 and what issues (if any) were identified by the comparison.
 
 The schema for this file is at [<prj_root>/schemas/skemium.compare.result.avsc](./schemas/skemium.compare.result.avsc).
+
+### Schema file comparison result
+
+The `compare-files` command can optionally save the result to an `--output` file.
+This summarises the two schema files that were compared, what [Schema Compatibility] was applied,
+and what incompatibilities (if any) were identified.
+
+The schema for this file is at [<prj_root>/schemas/skemium.compare-files.result.avsc](./schemas/skemium.compare-files.result.avsc).
 
 # Interested in contributing?
 

@@ -1,30 +1,13 @@
 package io.snyk.skemium;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Sets;
-import io.confluent.kafka.schemaregistry.CompatibilityLevel;
-import io.snyk.skemium.avro.TableAvroSchemas;
-import io.snyk.skemium.helpers.JSON;
-import io.snyk.skemium.helpers.SchemaRegistry;
-import io.snyk.skemium.meta.MetadataFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import picocli.CommandLine.Spec;
 
-import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Command(
         name = "compare",
@@ -38,38 +21,8 @@ import java.util.Set;
         parameterListHeading = "%nParameters:%n",
         optionListHeading = "%nOptions:%n"
 )
-public class CompareCommand extends BaseCommand {
+public class CompareCommand extends BaseComparisonCommand {
     private static final Logger LOG = LoggerFactory.getLogger(CompareCommand.class);
-
-    @Spec
-    CommandSpec spec;
-
-    @Option(
-            names = {"-c", "--compatibility"},
-            defaultValue = "${env:COMPATIBILITY}",
-            showDefaultValue = CommandLine.Help.Visibility.ALWAYS,
-            description = """
-                    Compatibility Level (env: COMPATIBILITY - optional)
-                    See: https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html
-                      Values: ${COMPLETION-CANDIDATES}"""
-    )
-    CompatibilityLevel compatibilityLevel = CompatibilityLevel.BACKWARD;
-
-    @Option(
-            names = {"-i", "--ci", "--ci-mode"},
-            defaultValue = "${env:CI_MODE}",
-            showDefaultValue = CommandLine.Help.Visibility.ALWAYS,
-            description = """
-                    CI mode - Fail when a Table is only detected in one of the two directories (env: CI_MODE - optional)"""
-    )
-    Boolean ciMode = false;
-
-    @Option(
-            names = {"-o", "--output"},
-            defaultValue = "${env:OUTPUT_FILE}",
-            description = "Output file (JSON); overridden if exists (env: OUTPUT_FILE - optional)"
-    )
-    Path output = null;
 
     @Parameters(
             arity = "1",
@@ -94,14 +47,10 @@ public class CompareCommand extends BaseCommand {
         logInput();
 
         try {
-            final Result res = Result.build(currSchemasDir, nextSchemasDir, compatibilityLevel);
+            final CompareResult res = CompareResult.build(currSchemasDir, nextSchemasDir, compatibilityLevel);
 
-            if (output != null) {
-                LOG.debug("Writing result to file: {}", output.toAbsolutePath().normalize());
-                try (final PrintWriter out = new PrintWriter(output.toString())) {
-                    out.println(JSON.pretty(res));
-                }
-            }
+            // Write output to file if specified
+            writeOutput(res);
 
             // Determine if the compatibility check was passed
             boolean checkPassed = true;
@@ -119,7 +68,7 @@ public class CompareCommand extends BaseCommand {
             // Were there table removals/additions detected?
             if (!res.removedTables().isEmpty()) {
                 checkPassed = !ciMode && checkPassed;
-                
+
                 if (ciMode) {
                     LOG.error("Tables removed between CURRENT and NEXT: {}", res.removedTables().size());
                 } else {
@@ -136,6 +85,39 @@ public class CompareCommand extends BaseCommand {
                     LOG.warn("Tables added between CURRENT and NEXT: {}", res.addedTables().size());
                 }
                 res.addedTables().forEach(addedTableId -> LOG.error("  {}", addedTableId));
+            }
+
+            // Check for schema changes without table changes in CI mode
+            if (ciMode && res.hasSchemaChangesWithoutTableChanges()) {
+                checkPassed = false;
+                LOG.error("Schema changes detected in CI mode: {} tables modified", res.totalTablesWithChanges());
+
+                // Log details of what changed
+                for (String tableId : res.tablesWithChanges()) {
+                    if (res.keySchemaChanged().getOrDefault(tableId, false)) {
+                        LOG.error("  Table '{}': Key schema changed", tableId);
+                    }
+                    if (res.valueSchemaChanged().getOrDefault(tableId, false)) {
+                        LOG.error("  Table '{}': Value schema changed", tableId);
+                    }
+                    if (res.envelopeSchemaChanged().getOrDefault(tableId, false)) {
+                        LOG.error("  Table '{}': Envelope schema changed", tableId);
+                    }
+                }
+            } else if (res.hasAnySchemaChanges() && !ciMode) {
+                // In non-CI mode, log schema changes as warnings for visibility
+                LOG.warn("Schema changes detected: {} tables modified", res.totalTablesWithChanges());
+                for (String tableId : res.tablesWithChanges()) {
+                    if (res.keySchemaChanged().getOrDefault(tableId, false)) {
+                        LOG.warn("  Table '{}': Key schema changed", tableId);
+                    }
+                    if (res.valueSchemaChanged().getOrDefault(tableId, false)) {
+                        LOG.warn("  Table '{}': Value schema changed", tableId);
+                    }
+                    if (res.envelopeSchemaChanged().getOrDefault(tableId, false)) {
+                        LOG.warn("  Table '{}': Envelope schema changed", tableId);
+                    }
+                }
             }
 
             if (checkPassed) {
@@ -167,18 +149,8 @@ public class CompareCommand extends BaseCommand {
             );
         }
 
-        if (output != null) {
-            final File outputFile = this.output.toFile();
-            if (outputFile.exists()) {
-                if (outputFile.isDirectory()) {
-                    throw new CommandLine.ParameterException(
-                            spec.commandLine(),
-                            "Output file is a directory: " + outputFile.getAbsolutePath()
-                    );
-                }
-                LOG.warn("Output file exists and will be overridden: {}", outputFile.getAbsolutePath());
-            }
-        }
+        // Validate output file
+        validateOutput();
 
         if (currSchemasDirFile.getAbsolutePath().equals(nextSchemasDirFile.getAbsolutePath())) {
             LOG.warn("Comparing a Schema Directory with itself?");
@@ -191,128 +163,7 @@ public class CompareCommand extends BaseCommand {
         LOG.debug("Input");
         LOG.debug("  CURRENT Schema Directory: {} (exists: {})", currSchemasDir.toAbsolutePath().normalize(), currSchemasDir.toFile().exists());
         LOG.debug("  NEXT    Schema Directory: {} (exists: {})", nextSchemasDir.toAbsolutePath().normalize(), nextSchemasDir.toFile().exists());
-        LOG.debug("  Compatibility Level: {}", compatibilityLevel);
-        LOG.debug("  CI Mode: {}", ciMode);
-        LOG.debug("Output");
-        if (output != null) {
-            LOG.debug("  File: {} (exists: {})", output.toAbsolutePath().normalize(), output.toFile().exists());
-        } else {
-            LOG.debug("  Standard Output");
-        }
-    }
 
-    /// Describes the result of running the `compare` command.
-    /// It's left to the calling logic to decide when to fail/succeed the actual CLI command.
-    ///
-    /// @param currentSchemasDir          [Path] to the directory containing the CURRENT Table Schemas compared.
-    /// @param nextSchemasDir             [Path] to the directory containing the NEXT Table Schemas compared.
-    /// @param compatibilityLevel         [CompatibilityLevel] used during the comparison.
-    /// @param keyIncompatibilities:      [Map] of Table Avro Schemas identifiers, to [List] of Key Schema incompatibilities.
-    /// @param valueIncompatibilities:    [Map] of Table Avro Schemas identifiers, to [List] of Value Schema incompatibilities.
-    /// @param envelopeIncompatibilities: [Map] of Table Avro Schemas identifiers, to [List] of Envelope Schema incompatibilities.
-    /// @param removedTables:             [Set] of Table Avro Schemas that were removed: present in CURRENT but absent from NEXT.
-    /// @param addedTables:               [Set] of Table Avro Schemas that were added: absent from CURRENT but present in NEXT.
-    record Result(
-            @JsonProperty(required = true, index = 0)
-            @Nonnull Path currentSchemasDir,
-            @JsonProperty(required = true, index = 1)
-            @Nonnull Path nextSchemasDir,
-            @JsonProperty(required = true, index = 2)
-            @Nonnull CompatibilityLevel compatibilityLevel,
-            @JsonProperty(required = true, index = 3)
-            @Nonnull Map<String, List<String>> keyIncompatibilities,
-            @JsonProperty(required = true, index = 5)
-            @Nonnull Map<String, List<String>> valueIncompatibilities,
-            @JsonProperty(required = true, index = 7)
-            @Nonnull Map<String, List<String>> envelopeIncompatibilities,
-            @JsonProperty(required = true, index = 10)
-            @Nonnull Set<String> removedTables,
-            @JsonProperty(required = true, index = 11)
-            @Nonnull Set<String> addedTables
-    ) {
-        public static final Path AVRO_SCHEMA_FILENAME = Path.of("skemium.compare.result.avsc");
-
-        /// Sum of all Key Schema incompatibilities identified, across all Tables.
-        @JsonProperty(access = JsonProperty.Access.READ_ONLY, index = 4)
-        public int keyIncompatibilitiesTotal() {
-            return keyIncompatibilities.values().stream().mapToInt(List::size).sum();
-        }
-
-        /// Sum of all Value Schema incompatibilities identified, across all Tables.
-        @JsonProperty(access = JsonProperty.Access.READ_ONLY, index = 6)
-        public int valueIncompatibilitiesTotal() {
-            return valueIncompatibilities.values().stream().mapToInt(List::size).sum();
-        }
-
-        /// Sum of all Envelope Schema incompatibilities identified, across all Tables.
-        @JsonProperty(access = JsonProperty.Access.READ_ONLY, index = 8)
-        public int envelopeIncompatibilitiesTotal() {
-            return envelopeIncompatibilities.values().stream().mapToInt(List::size).sum();
-        }
-
-        @JsonProperty(access = JsonProperty.Access.READ_ONLY, index = 9)
-        public int incompatibilitiesTotal() {
-            return keyIncompatibilitiesTotal() + valueIncompatibilitiesTotal() + envelopeIncompatibilitiesTotal();
-        }
-
-        public static Result build(@Nonnull Path currSchemasDir,
-                                   @Nonnull Path nextSchemasDir,
-                                   @Nonnull CompatibilityLevel compatibilityLevel) throws IOException {
-            final MetadataFile currMeta = MetadataFile.loadFrom(currSchemasDir);
-            final Set<String> currTableIds = currMeta.getTableSchemasIdentifiers();
-
-            final MetadataFile nextMeta = MetadataFile.loadFrom(nextSchemasDir);
-            final Set<String> nextTableIds = nextMeta.getTableSchemasIdentifiers();
-
-            final Sets.SetView<String> removedTables = Sets.difference(currTableIds, nextTableIds);
-            final Sets.SetView<String> addedTables = Sets.difference(nextTableIds, currTableIds);
-
-            final Map<String, List<String>> keyIncompatibilities = new HashMap<>(currTableIds.size());
-            final Map<String, List<String>> valueIncompatibilities = new HashMap<>(currTableIds.size());
-            final Map<String, List<String>> envelopeIncompatibilities = new HashMap<>(currTableIds.size());
-
-            for (final String tableId : currTableIds) {
-                if (!nextTableIds.contains(tableId)) {
-                    LOG.warn("Table '{}' not found in NEXT Database Schema: skipping compatibility check (table dropped?)", tableId);
-                    continue;
-                }
-
-                LOG.debug("Checking compatibility '{}' for Table '{}'", compatibilityLevel, tableId);
-                final TableAvroSchemas currTableSchemas = TableAvroSchemas.loadFrom(currSchemasDir, tableId);
-                final TableAvroSchemas nextTableSchemas = TableAvroSchemas.loadFrom(nextSchemasDir, tableId);
-                final SchemaRegistry.CompatibilityResult res = SchemaRegistry.checkCompatibility(
-                        currTableSchemas,
-                        nextTableSchemas,
-                        compatibilityLevel);
-                if (res.isCompatible()) {
-                    LOG.info("Compatibility for Table '{}' preserved", tableId);
-                    keyIncompatibilities.put(tableId, List.of());
-                    valueIncompatibilities.put(tableId, List.of());
-                    envelopeIncompatibilities.put(tableId, List.of());
-                } else {
-                    LOG.trace("Checking Table '{}' Key Incompatibilities", tableId);
-                    keyIncompatibilities.put(tableId, res.keyResults());
-                    for (final String err : res.keyResults()) {
-                        LOG.error("Table '{}' Key Incompatibility: {}", tableId, err);
-                    }
-
-                    LOG.trace("Checking Table '{}' Value Incompatibilities", tableId);
-                    valueIncompatibilities.put(tableId, res.valueResults());
-                    for (final String err : res.valueResults()) {
-                        LOG.error("Table '{}' Value Incompatibility: {}", tableId, err);
-                    }
-
-                    LOG.trace("Checking Table '{}' Envelope Incompatibilities", tableId);
-                    envelopeIncompatibilities.put(tableId, res.envelopeResults());
-                    for (final String err : res.envelopeResults()) {
-                        LOG.error("Table '{}' Envelope Incompatibility: {}", tableId, err);
-                    }
-                }
-            }
-
-            return new Result(currSchemasDir, nextSchemasDir, compatibilityLevel,
-                    keyIncompatibilities, valueIncompatibilities, envelopeIncompatibilities,
-                    removedTables, addedTables);
-        }
+        logCommonInput();
     }
 }

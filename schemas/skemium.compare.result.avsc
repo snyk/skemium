@@ -1,7 +1,7 @@
 {
   "type" : "record",
-  "name" : "Result",
-  "namespace" : "io.snyk.skemium.CompareCommand",
+  "name" : "CompareResult",
+  "namespace" : "io.snyk.skemium",
   "fields" : [ {
     "name" : "currentSchemasDir",
     "type" : "string"
@@ -81,5 +81,30 @@
       "items" : "string",
       "java-class" : "java.util.Set"
     }
+  }, {
+    "name" : "keySchemaChanged",
+    "type" : {
+      "type" : "map",
+      "values" : "boolean"
+    }
+  }, {
+    "name" : "valueSchemaChanged",
+    "type" : {
+      "type" : "map",
+      "values" : "boolean"
+    }
+  }, {
+    "name" : "envelopeSchemaChanged",
+    "type" : {
+      "type" : "map",
+      "values" : "boolean"
+    }
+  }, {
+    "name" : "tablesWithChanges",
+    "type" : [ "null", {
+      "type" : "array",
+      "items" : "string",
+      "java-class" : "java.util.Set"
+    } ]
   } ]
 }

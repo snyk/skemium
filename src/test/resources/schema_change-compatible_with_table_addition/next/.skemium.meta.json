@@ -1,0 +1,11 @@
+{
+  "created_ISO8601": "2024-01-01T00:00:00Z",
+  "created": 1704067200.0,
+  "arguments": ["test", "fixture"],
+  "count": 2,
+  "schemas": {
+    "chinook.public.artist": "test-checksum-next",
+    "chinook.public.employee": "test-checksum-employee"
+  },
+  "sha256": "test-checksum-next-with-employee"
+}

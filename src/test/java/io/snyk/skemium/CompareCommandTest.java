@@ -2,7 +2,6 @@ package io.snyk.skemium;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.confluent.kafka.schemaregistry.CompatibilityLevel;
-import io.snyk.skemium.CompareCommand.Result;
 import io.snyk.skemium.helpers.Avro;
 import io.snyk.skemium.helpers.JSON;
 import org.junit.jupiter.api.AfterEach;
@@ -24,6 +23,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CompareCommandTest extends WithPostgresContainer {
     Path CURR_DIR;
@@ -52,7 +54,7 @@ class CompareCommandTest extends WithPostgresContainer {
 
     @Test
     void refreshCompareResultFileSchema() throws JsonProcessingException, FileNotFoundException {
-        Avro.saveAvroSchemaForType(Result.class, Result.AVRO_SCHEMA_FILENAME);
+        Avro.saveAvroSchemaForType(CompareResult.class, CompareResult.AVRO_SCHEMA_FILENAME);
     }
 
     @Test
@@ -73,7 +75,7 @@ class CompareCommandTest extends WithPostgresContainer {
         ));
         FileUtils.copyDirectory(CURR_DIR.toFile(), NEXT_DIR.toFile());
 
-        final Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        final CompareResult res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
 
         assertEquals(CompatibilityLevel.BACKWARD, res.compatibilityLevel());
         assertEquals(Map.of(
@@ -138,7 +140,7 @@ class CompareCommandTest extends WithPostgresContainer {
                 NEXT_DIR.toAbsolutePath().toString()
         ));
 
-        final Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        final CompareResult res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
 
         assertEquals(CompatibilityLevel.BACKWARD, res.compatibilityLevel());
         assertEquals(Map.of(
@@ -199,7 +201,7 @@ class CompareCommandTest extends WithPostgresContainer {
         ));
 
         // Change is not BACKWARD compatible
-        Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        CompareResult res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.keyIncompatibilities().get("chinook.public.artist").size());
         assertEquals(2, res.valueIncompatibilitiesTotal());
@@ -210,7 +212,7 @@ class CompareCommandTest extends WithPostgresContainer {
         assertEquals(Set.of(), res.addedTables());
 
         // Change would be BACKWARD compatible, if it was in reverse (from NEXT to CURR)
-        res = Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
+        res = CompareResult.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -218,7 +220,7 @@ class CompareCommandTest extends WithPostgresContainer {
         assertEquals(Set.of(), res.addedTables());
 
         // Change is FORWARD compatible
-        res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
+        res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -266,7 +268,7 @@ class CompareCommandTest extends WithPostgresContainer {
         ));
 
         // Change is not BACKWARD compatible
-        Result res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
+        CompareResult res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.keyIncompatibilities().get("chinook.public.artist").size());
         assertEquals(2, res.valueIncompatibilitiesTotal());
@@ -277,7 +279,7 @@ class CompareCommandTest extends WithPostgresContainer {
         assertEquals(Set.of(), res.addedTables());
 
         // Change would be BACKWARD compatible, if it was in reverse (from NEXT to CURR)
-        res = Result.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
+        res = CompareResult.build(NEXT_DIR, CURR_DIR, CompatibilityLevel.BACKWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -285,7 +287,7 @@ class CompareCommandTest extends WithPostgresContainer {
         assertEquals(Set.of(), res.addedTables());
 
         // Change is FORWARD compatible
-        res = Result.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
+        res = CompareResult.build(CURR_DIR, NEXT_DIR, CompatibilityLevel.FORWARD);
         assertEquals(0, res.keyIncompatibilitiesTotal());
         assertEquals(0, res.valueIncompatibilitiesTotal());
         assertEquals(0, res.envelopeIncompatibilitiesTotal());
@@ -342,7 +344,7 @@ class CompareCommandTest extends WithPostgresContainer {
                 NEXT_DIR.toAbsolutePath().toString()
         ));
 
-        final Result resFromOutputFile = JSON.from(OUTPUT_FILE.toFile(), Result.class);
+        final CompareResult resFromOutputFile = JSON.from(OUTPUT_FILE.toFile(), CompareResult.class);
         assertEquals(0, resFromOutputFile.keyIncompatibilitiesTotal());
         assertEquals(0, resFromOutputFile.keyIncompatibilities().get("chinook.public.employee").size());
         assertEquals(2, resFromOutputFile.valueIncompatibilitiesTotal());
@@ -351,5 +353,196 @@ class CompareCommandTest extends WithPostgresContainer {
         assertEquals(3, resFromOutputFile.envelopeIncompatibilities().get("chinook.public.employee").size());
         assertEquals(Set.of(), resFromOutputFile.removedTables());
         assertEquals(Set.of(), resFromOutputFile.addedTables());
+    }
+
+    @Test
+    public void shouldSucceedInNormalModeWithCompatibleChanges() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/next");
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // Compatible changes should succeed in normal mode
+        assertEquals(0, cmdLine.execute("--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+    }
+
+    @Test
+    public void shouldFailInCIModeWithCompatibleChanges() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/next");
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // Compatible changes should FAIL in CI mode (this is the new behavior)
+        assertEquals(1, cmdLine.execute("--ci-mode", "--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+    }
+
+    @Test
+    public void shouldReportSchemaChangesInResult() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/next");
+
+        final CompareResult result = CompareResult.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+
+        // Verify schema changes are detected
+        assertTrue(result.hasAnySchemaChanges());
+        assertTrue(result.hasSchemaChangesWithoutTableChanges());
+        assertEquals(1, result.totalTablesWithChanges());
+        assertTrue(result.tablesWithChanges().contains("chinook.public.artist"));
+
+        // Check specific schema changes
+        assertFalse(result.keySchemaChanged().get("chinook.public.artist")); // Key didn't change
+        assertTrue(result.valueSchemaChanged().get("chinook.public.artist")); // Value changed
+        assertTrue(result.envelopeSchemaChanged().get("chinook.public.artist")); // Envelope changed
+
+        // Verify it's still compatible
+        assertTrue(result.incompatibilitiesTotal() == 0);
+    }
+
+    @Test
+    public void shouldReportNoChangesWhenSchemasAreIdentical() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/current"); // Same directory
+
+        final CompareResult result = CompareResult.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+
+        // Verify no changes are detected
+        assertFalse(result.hasAnySchemaChanges());
+        assertFalse(result.hasSchemaChangesWithoutTableChanges());
+        assertEquals(0, result.totalTablesWithChanges());
+        assertTrue(result.tablesWithChanges().isEmpty());
+
+        // Check specific schema changes - all should be false
+        assertFalse(result.keySchemaChanged().get("chinook.public.artist"));
+        assertFalse(result.valueSchemaChanged().get("chinook.public.artist"));
+        assertFalse(result.envelopeSchemaChanged().get("chinook.public.artist"));
+
+        // Verify it's compatible
+        assertEquals(0, result.incompatibilitiesTotal());
+    }
+
+    @Test
+    public void shouldSucceedInCIModeWhenNoChanges() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/current"); // Same directory
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // No changes should succeed even in CI mode
+        assertEquals(0, cmdLine.execute("--ci-mode", "--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+    }
+
+    @Test
+    public void shouldStillFailInCIModeWithIncompatibleChanges() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-non_backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-non_backward_compatible/next");
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // Incompatible changes should still fail in CI mode (existing behavior)
+        assertEquals(1, cmdLine.execute("--ci-mode", "--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+    }
+
+    @Test
+    public void shouldReportIncompatibleChangesInResult() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-non_backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-non_backward_compatible/next");
+
+        final CompareResult result = CompareResult.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+
+        // Verify schema changes are detected
+        assertTrue(result.hasAnySchemaChanges());
+        assertTrue(result.hasSchemaChangesWithoutTableChanges());
+        assertEquals(1, result.totalTablesWithChanges());
+
+        // Verify it's incompatible
+        assertTrue(result.incompatibilitiesTotal() > 0);
+    }
+
+    @Test
+    public void shouldSaveEnhancedResultToOutputFile() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-backward_compatible/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-backward_compatible/next");
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // Run comparison and save to output file
+        assertEquals(0, cmdLine.execute("--compatibility", CompatibilityLevel.BACKWARD.toString(), "--output", OUTPUT_FILE.toAbsolutePath().toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+
+        // Load result from file and verify new fields are present
+        final CompareResult result = JSON.from(OUTPUT_FILE.toFile(), CompareResult.class);
+
+        // Verify new change tracking fields are populated
+        assertNotNull(result.keySchemaChanged());
+        assertNotNull(result.valueSchemaChanged());
+        assertNotNull(result.envelopeSchemaChanged());
+
+        assertTrue(result.keySchemaChanged().containsKey("chinook.public.artist"));
+        assertTrue(result.valueSchemaChanged().containsKey("chinook.public.artist"));
+        assertTrue(result.envelopeSchemaChanged().containsKey("chinook.public.artist"));
+
+        // Verify the change detection worked
+        assertFalse(result.keySchemaChanged().get("chinook.public.artist"));
+        assertTrue(result.valueSchemaChanged().get("chinook.public.artist"));
+        assertTrue(result.envelopeSchemaChanged().get("chinook.public.artist")); // Envelope changed
+
+        // Verify convenience methods work
+        assertTrue(result.hasAnySchemaChanges());
+        assertEquals(1, result.totalTablesWithChanges());
+        assertTrue(result.tablesWithChanges().contains("chinook.public.artist"));
+    }
+
+    @Test
+    public void shouldHandleMixedScenarioWithSchemaChangesAndTableAdditions() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-compatible_with_table_addition/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-compatible_with_table_addition/next");
+
+        final CompareResult result = CompareResult.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+
+        // Verify both schema changes and table additions are detected
+        assertTrue(result.hasAnySchemaChanges());
+        assertFalse(result.hasSchemaChangesWithoutTableChanges()); // Because there are table additions
+        assertFalse(result.addedTables().isEmpty()); // Table was added
+        assertTrue(result.removedTables().isEmpty()); // No tables removed
+
+        // Should have changes in existing table plus a new table
+        assertEquals(1, result.totalTablesWithChanges()); // Only existing table with changes
+        assertTrue(result.tablesWithChanges().contains("chinook.public.artist"));
+
+        // The added table should be in addedTables, not in schema changes
+        assertTrue(result.addedTables().contains("chinook.public.employee"));
+    }
+
+    @Test
+    public void shouldFailInCIModeWithMixedChanges() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-compatible_with_table_addition/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-compatible_with_table_addition/next");
+
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        // Mixed changes (schema changes + table additions) should fail in CI mode
+        assertEquals(1, cmdLine.execute("--ci-mode", "--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
+    }
+
+    @Test
+    public void shouldTestNoChangesScenario() throws IOException {
+        final Path currDir = Path.of("src/test/resources/schema_change-no_changes/current");
+        final Path nextDir = Path.of("src/test/resources/schema_change-no_changes/next");
+
+        final CompareResult result = CompareResult.build(currDir, nextDir, CompatibilityLevel.BACKWARD);
+
+        // Verify absolutely no changes are detected
+        assertFalse(result.hasAnySchemaChanges());
+        assertFalse(result.hasSchemaChangesWithoutTableChanges());
+        assertEquals(0, result.totalTablesWithChanges());
+        assertTrue(result.tablesWithChanges().isEmpty());
+        assertTrue(result.addedTables().isEmpty());
+        assertTrue(result.removedTables().isEmpty());
+        assertEquals(0, result.incompatibilitiesTotal());
+
+        // CI mode should succeed with no changes
+        final CommandLine cmdLine = new CommandLine(new CompareCommand()).setOut(new PrintWriter(new StringWriter())).setErr(new PrintWriter(new StringWriter()));
+
+        assertEquals(0, cmdLine.execute("--ci-mode", "--compatibility", CompatibilityLevel.BACKWARD.toString(), currDir.toAbsolutePath().toString(), nextDir.toAbsolutePath().toString()));
     }
 }
