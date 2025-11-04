@@ -27,7 +27,9 @@ tasks:
   tag-version:
     cmds:
       - mvn versions:set -DnewVersion={{.CLI_ARGS}}
+      - git commit -am "Set version to {{.CLI_ARGS}}"
       - git tag v{{.CLI_ARGS}}
+      - git tag -l --sort=creatordate   --format='%(refname:short) -> %(creatordate)'
 
   snyk.test:
     cmds:
