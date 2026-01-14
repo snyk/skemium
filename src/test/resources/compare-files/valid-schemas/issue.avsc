@@ -1,0 +1,71 @@
+{
+  "type": "record",
+  "namespace": "io.snyk.events.issue",
+  "name": "Issue",
+  "doc": "describes an issue, based on the public REST API schema",
+  "fields": [
+    { "type": "string", "name": "id", "doc": "the ID of this issue" },
+    {
+      "type": { "type": "long", "logicalType": "timestamp-millis" },
+      "name": "createdAt",
+      "doc": "the creation time of this issue"
+    },
+    {
+      "type": ["null", {
+        "type": "enum",
+        "name": "effectiveSeverityLevel",
+        "symbols": ["critical", "high", "medium", "low", "info"]
+      }],
+      "name": "effectiveSeverityLevel",
+      "doc": "The computed effective severity of this issue."
+    },
+    {
+      "type": "boolean",
+      "name": "ignored",
+      "doc": "A flag indicating if the issue is being ignored"
+    },
+    {
+      "type": "string",
+      "name": "key",
+      "doc": "An opaque key used for uniquely identifying this issue across test runs, within a project."
+    },
+    {
+      "type": {
+        "type": "enum",
+        "name": "status",
+        "symbols": ["open", "resolved"]
+      },
+      "name": "status",
+      "doc": "The status of this issue"
+    },
+    {
+      "type": "string",
+      "name": "title",
+      "doc": "A human-readable title for this issue"
+    },
+    {
+      "type": {
+        "type": "enum",
+        "name": "type",
+        "symbols": [
+          "cloud",
+          "code",
+          "config",
+          "custom",
+          "license",
+          "package_vulnerability"
+        ]
+      },
+      "name": "type",
+      "doc": "the type of the issue"
+    },
+    {
+      "type": { "type": "long", "logicalType": "timestamp-millis" },
+      "name": "updatedAt",
+      "doc": "The time when this issue was last modified"
+    }
+  ]
+}
+
+
+

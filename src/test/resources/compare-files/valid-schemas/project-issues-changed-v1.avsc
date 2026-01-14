@@ -1,0 +1,54 @@
+{
+  "fields": [
+    {
+      "name": "operation",
+      "doc": "the project operation that triggered this message",
+      "type": {
+        "type": "enum",
+        "name": "operation",
+        "symbols": ["created", "updated", "deleted", "moved"]
+      }
+    },
+    {
+      "name": "payloadURL",
+      "doc": "the issues data, if it didn't fit into the message itself",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "issues",
+      "doc": "the issues data, unless it overflowed",
+      "type": {
+        "type": "array",
+        "items": "io.snyk.events.issue.Issue"
+      },
+      "default": []
+    },
+    {
+      "name": "numIssues",
+      "doc": "the number of issues",
+      "type": "int"
+    },
+    {
+      "name": "projectEventTimestamp",
+      "doc": "timestamp of the original project event",
+      "type": { "logicalType": "timestamp-millis", "type": "long" }
+    },
+    {
+      "name": "orgPublicID",
+      "doc": "the organisation where the issues belong to",
+      "type": { "logicalType": "UUID", "type": "string" }
+    },
+    {
+      "name": "projectPublicID",
+      "doc": "the public ID (UUID) of the project",
+      "type": { "logicalType": "UUID", "type": "string" }
+    }
+  ],
+  "name": "ProjectIssuesChanged",
+  "namespace": "io.snyk.events.issue",
+  "type": "record"
+}
+
+
+

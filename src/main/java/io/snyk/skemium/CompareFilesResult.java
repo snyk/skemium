@@ -9,8 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 
 /// Describes the result of comparing two Avro schema files.
@@ -48,19 +50,50 @@ public record CompareFilesResult(
     /// @param currentSchemaFile  path to the current/baseline schema file
     /// @param nextSchemaFile     path to the next/target schema file
     /// @param compatibilityLevel compatibility level to apply during comparison
-    /// @return SchemaComparisonResult with comparison results
+    /// @return [CompareFilesResult] with comparison results
     /// @throws IOException if files cannot be read or parsed
     public static CompareFilesResult build(
             @Nonnull Path currentSchemaFile,
             @Nonnull Path nextSchemaFile,
             @Nonnull CompatibilityLevel compatibilityLevel) throws IOException {
+        return build(currentSchemaFile, nextSchemaFile, compatibilityLevel, Collections.emptyList());
+    }
+
+    /// Creates a SchemaComparisonResult by comparing two Avro schema files,
+    /// with support for additional schema files to resolve referenced types.
+    ///
+    /// @param currentSchemaFile  path to the current/baseline schema file
+    /// @param nextSchemaFile     path to the next/target schema file
+    /// @param compatibilityLevel compatibility level to apply during comparison
+    /// @param includeSchemas     additional schema files to parse first for type resolution
+    /// @return [CompareFilesResult] with comparison results
+    /// @throws IOException if files cannot be read or parsed
+    public static CompareFilesResult build(
+            @Nonnull Path currentSchemaFile,
+            @Nonnull Path nextSchemaFile,
+            @Nonnull CompatibilityLevel compatibilityLevel,
+            @Nullable List<Path> includeSchemas) throws IOException {
         LOG.debug("Comparing schemas: {} -> {}", currentSchemaFile, nextSchemaFile);
+
+        final List<Path> schemaIncludes = 
+            includeSchemas != null ? includeSchemas : Collections.emptyList();
+        if (!schemaIncludes.isEmpty()) {
+            LOG.debug("Including {} additional schema(s) for type resolution", schemaIncludes.size());
+        }
 
         // Parse the current schema
         final Schema currentSchema;
         try {
             LOG.trace("Loading current schema from: {}", currentSchemaFile);
-            currentSchema = new Schema.Parser().parse(currentSchemaFile.toFile());
+            Schema.Parser currentParser = new Schema.Parser();
+
+            // Pre-parse include schemas to populate type registry
+            for (Path includeSchema : schemaIncludes) {
+                LOG.trace("Pre-parsing include schema: {}", includeSchema);
+                currentParser.parse(includeSchema.toFile());
+            }
+
+            currentSchema = currentParser.parse(currentSchemaFile.toFile());
             LOG.debug("Successfully parsed current schema: {}", currentSchema.getName());
         } catch (Exception e) {
             throw new IOException("Failed to parse current schema file: " + currentSchemaFile, e);
@@ -70,7 +103,15 @@ public record CompareFilesResult(
         final Schema nextSchema;
         try {
             LOG.trace("Loading next schema from: {}", nextSchemaFile);
-            nextSchema = new Schema.Parser().parse(nextSchemaFile.toFile());
+            Schema.Parser nextParser = new Schema.Parser();
+
+            // Pre-parse include schemas to populate type registry
+            for (Path includeSchema : schemaIncludes) {
+                LOG.trace("Pre-parsing include schema: {}", includeSchema);
+                nextParser.parse(includeSchema.toFile());
+            }
+
+            nextSchema = nextParser.parse(nextSchemaFile.toFile());
             LOG.debug("Successfully parsed next schema: {}", nextSchema.getName());
         } catch (Exception e) {
             throw new IOException("Failed to parse next schema file: " + nextSchemaFile, e);

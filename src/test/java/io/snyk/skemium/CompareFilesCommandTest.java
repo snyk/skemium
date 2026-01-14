@@ -26,6 +26,7 @@ class CompareFilesCommandTest {
     private final Path testResourcesDir = Paths.get("src/test/resources/compare-files");
     private final Path validSchemasDir = testResourcesDir.resolve("valid-schemas");
     private final Path invalidSchemasDir = testResourcesDir.resolve("invalid-schemas");
+    private final Path multiSchemaDir = testResourcesDir.resolve("multi-schema");
 
     @BeforeEach
     public void createTempFile() throws IOException {
@@ -471,6 +472,67 @@ class CompareFilesCommandTest {
 
         // Should fail - schemas are compatible but different (CI mode detects changes)
         assertEquals(1, exitCode);
+    }
+
+    
+    // ========================================================================
+    // Tests for --include-schema functionality (multi-file schema resolution)
+    // ========================================================================
+
+
+    @Test
+    void shouldFailWithoutIncludeSchemaWhenTypeIsExternal() {
+        final CommandLine cmdLine = createCommandLine();
+        final Path schema = multiSchemaDir.resolve("event-with-issue-ref.avsc");
+
+        final int exitCode = cmdLine.execute(
+                schema.toString(),
+                schema.toString());
+
+        assertEquals(1, exitCode);
+    }
+
+    @Test
+    void shouldSucceedWithIncludeSchemaOption() {
+        final CommandLine cmdLine = createCommandLine();
+        final Path issueSchema = multiSchemaDir.resolve("issue-type.avsc");
+        final Path schema = multiSchemaDir.resolve("event-with-issue-ref.avsc");
+
+        final int exitCode = cmdLine.execute(
+                "--include-schema", issueSchema.toString(),
+                schema.toString(),
+                schema.toString());
+
+        assertEquals(0, exitCode);
+    }
+
+    @Test
+    void shouldSucceedWithShortIncludeSchemaOption() {
+        final CommandLine cmdLine = createCommandLine();
+        final Path issueSchema = multiSchemaDir.resolve("issue-type.avsc");
+        final Path schema = multiSchemaDir.resolve("event-with-issue-ref.avsc");
+
+        final int exitCode = cmdLine.execute(
+                "-s", issueSchema.toString(),
+                schema.toString(),
+                schema.toString());
+
+        assertEquals(0, exitCode);
+    }
+
+    @Test
+    void shouldFailWhenIncludeSchemaDoesNotExist() {
+        final CommandLine cmdLine = createCommandLine();
+        final Path nonExistent = multiSchemaDir.resolve("does-not-exist.avsc");
+        final Path schema = validSchemasDir.resolve("person-v1.avsc");
+
+        final int exitCode = cmdLine.execute(
+                "--include-schema", nonExistent.toString(),
+                schema.toString(),
+                schema.toString());
+
+        // picocli returns 2 for parameter exceptions
+        assertEquals(2, exitCode); 
     }
 
     private CommandLine createCommandLine() {

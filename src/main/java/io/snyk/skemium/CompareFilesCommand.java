@@ -4,10 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 @Command(
         name = "compare-files",
@@ -40,6 +43,15 @@ public class CompareFilesCommand extends BaseComparisonCommand {
     )
     Path nextSchemaFile;
 
+    @Option(names = {"--include-schema", "-s"},
+            description = """
+                    Additional schema files to include for type resolution.
+                    These schemas are parsed before the main schema files,
+                    populating the parser's type registry to enable resolution
+                    of referenced types. Can be specified multiple times."""
+    )
+    List<Path> includeSchemas = new ArrayList<>();
+
     @Override
     public Integer call() {
         setLogLevelFromVerbosity();
@@ -50,7 +62,8 @@ public class CompareFilesCommand extends BaseComparisonCommand {
             final CompareFilesResult result = CompareFilesResult.build(
                     currentSchemaFile,
                     nextSchemaFile,
-                    compatibilityLevel);
+                    compatibilityLevel,
+                    includeSchemas);
 
             // Write output to file if specified
             writeOutput(result);
@@ -104,59 +117,45 @@ public class CompareFilesCommand extends BaseComparisonCommand {
     }
 
     private void validate() throws CommandLine.ParameterException {
-        // Validate current schema file
-        final File currentFile = currentSchemaFile.toFile();
-        if (!currentFile.exists()) {
-            throw new CommandLine.ParameterException(
-                    spec.commandLine(),
-                    "Current schema file does not exist: " + currentFile.getAbsolutePath());
-        }
-        if (currentFile.isDirectory()) {
-            throw new CommandLine.ParameterException(
-                    spec.commandLine(),
-                    "Current schema path is a directory, expected a file: " + currentFile.getAbsolutePath());
-        }
-        if (!currentFile.canRead()) {
-            throw new CommandLine.ParameterException(
-                    spec.commandLine(),
-                    "Current schema file is not readable: " + currentFile.getAbsolutePath());
-        }
-
-        // Validate next schema file
-        final File nextFile = nextSchemaFile.toFile();
-        if (!nextFile.exists()) {
-            throw new CommandLine.ParameterException(
-                    spec.commandLine(),
-                    "Next schema file does not exist: " + nextFile.getAbsolutePath());
-        }
-        if (nextFile.isDirectory()) {
-            throw new CommandLine.ParameterException(
-                    spec.commandLine(),
-                    "Next schema path is a directory, expected a file: " + nextFile.getAbsolutePath());
-        }
-        if (!nextFile.canRead()) {
-            throw new CommandLine.ParameterException(
-                    spec.commandLine(),
-                    "Next schema file is not readable: " + nextFile.getAbsolutePath());
-        }
+        validateSchemaFile(currentSchemaFile, "Current schema");
+        validateSchemaFile(nextSchemaFile, "Next schema");
 
         // Validate that files are different
-        if (currentFile.getAbsolutePath().equals(nextFile.getAbsolutePath())) {
-            LOG.warn("Comparing a schema file with itself: {}", currentFile.getAbsolutePath());
+        if (currentSchemaFile.toFile().getAbsolutePath().equals(nextSchemaFile.toFile().getAbsolutePath())) {
+            LOG.warn("Comparing a schema file with itself: {}", currentSchemaFile.toFile().getAbsolutePath());
         }
 
-        // Validate file extensions (warn if not .avsc)
-        if (!currentFile.getName().endsWith(".avsc")) {
-            LOG.warn("Current schema file does not have .avsc extension: {}", currentFile.getName());
-        }
-        if (!nextFile.getName().endsWith(".avsc")) {
-            LOG.warn("Next schema file does not have .avsc extension: {}", nextFile.getName());
+        // Validate include schema files
+        for (Path includeSchema : includeSchemas) {
+            validateSchemaFile(includeSchema, "Include schema");
         }
 
         // Validate output file
         validateOutput();
 
         LOG.debug("Input validation completed successfully");
+    }
+
+    private void validateSchemaFile(Path schemaPath, String fileLabel) throws CommandLine.ParameterException {
+        final File file = schemaPath.toFile();
+        if (!file.exists()) {
+            throw new CommandLine.ParameterException(
+                    spec.commandLine(),
+                    fileLabel + " file does not exist: " + file.getAbsolutePath());
+        }
+        if (file.isDirectory()) {
+            throw new CommandLine.ParameterException(
+                    spec.commandLine(),
+                    fileLabel + " path is a directory, expected a file: " + file.getAbsolutePath());
+        }
+        if (!file.canRead()) {
+            throw new CommandLine.ParameterException(
+                    spec.commandLine(),
+                    fileLabel + " file is not readable: " + file.getAbsolutePath());
+        }
+        if (!file.getName().endsWith(".avsc")) {
+            LOG.warn("{} file does not have .avsc extension: {}", fileLabel, file.getName());
+        }
     }
 
     private void logInput() {
@@ -169,6 +168,15 @@ public class CompareFilesCommand extends BaseComparisonCommand {
                 nextSchemaFile.toAbsolutePath().normalize(),
                 nextSchemaFile.toFile().exists(),
                 nextSchemaFile.toFile().length());
+        if (!includeSchemas.isEmpty()) {
+            LOG.debug("  Include Schemas: {} file(s)", includeSchemas.size());
+            for (Path includeSchema : includeSchemas) {
+                LOG.debug("    - {} (exists: {}, size: {} bytes)",
+                        includeSchema.toAbsolutePath().normalize(),
+                        includeSchema.toFile().exists(),
+                        includeSchema.toFile().length());
+            }
+        }
 
         logCommonInput();
     }

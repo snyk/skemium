@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -14,6 +15,7 @@ class CompareFilesResultTest {
     private final Path testResourcesDir = Paths.get("src/test/resources/compare-files");
     private final Path validSchemasDir = testResourcesDir.resolve("valid-schemas");
     private final Path invalidSchemasDir = testResourcesDir.resolve("invalid-schemas");
+    private final Path multiSchemaDir = testResourcesDir.resolve("multi-schema");
 
     @Test
     void shouldCreateCompatibleResult() throws IOException {
@@ -168,5 +170,67 @@ class CompareFilesResultTest {
 
         // Test that incompatibilities is a proper list (even if empty)
         assertInstanceOf(List.class, result.incompatibilities());
+    }
+
+    // ========================================================================
+    // Tests for --include-schema functionality (multi-file schema resolution)
+    // ========================================================================
+
+    @Test
+    void shouldFailWithUndefinedSchemaErrorWithoutInclude() {
+        // Reproduces the exact CI pipeline error when schema references external type
+        final Path projectIssuesChangedSchema = multiSchemaDir.resolve("event-with-issue-ref.avsc");
+
+        final IOException exception = assertThrows(IOException.class, () -> {
+            CompareFilesResult.build(
+                    projectIssuesChangedSchema,
+                    projectIssuesChangedSchema,
+                    CompatibilityLevel.BACKWARD);
+        });
+
+        assertTrue(exception.getMessage().contains("Failed to parse current schema file"));
+        assertTrue(exception.getCause().getMessage().contains("Undefined schema") ||
+                   exception.getCause().getMessage().contains("Issue"));
+    }
+
+    @Test
+    void shouldSucceedWithIncludeSchema() throws IOException {
+        final Path issueSchema = multiSchemaDir.resolve("issue-type.avsc");
+        final Path projectIssuesChangedSchema = multiSchemaDir.resolve("event-with-issue-ref.avsc");
+
+        final CompareFilesResult result = CompareFilesResult.build(
+                projectIssuesChangedSchema,
+                projectIssuesChangedSchema,
+                CompatibilityLevel.BACKWARD,
+                List.of(issueSchema));
+
+        assertNotNull(result);
+        assertTrue(result.isCompatible());
+        assertFalse(result.hasSchemaChanges());
+    }
+
+    @Test
+    void shouldWorkWithNullOrEmptyIncludeSchemas() throws IOException {
+        final Path schema = validSchemasDir.resolve("person-v1.avsc");
+
+        // null list
+        final CompareFilesResult resultNull = CompareFilesResult.build(
+                schema, schema, CompatibilityLevel.BACKWARD, null);
+        assertTrue(resultNull.isCompatible());
+
+        // empty list
+        final CompareFilesResult resultEmpty = CompareFilesResult.build(
+                schema, schema, CompatibilityLevel.BACKWARD, Collections.emptyList());
+        assertTrue(resultEmpty.isCompatible());
+    }
+
+    @Test
+    void shouldFailForNonexistentIncludeSchema() {
+        final Path schema = validSchemasDir.resolve("person-v1.avsc");
+        final Path nonExistent = multiSchemaDir.resolve("does-not-exist.avsc");
+
+        assertThrows(IOException.class, () -> {
+            CompareFilesResult.build(schema, schema, CompatibilityLevel.BACKWARD, List.of(nonExistent));
+        });
     }
 }
