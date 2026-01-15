@@ -65,6 +65,7 @@
     <ver.kafka-connect-avro-converter>7.9.5</ver.kafka-connect-avro-converter>
     <ver.kafka>3.9.1</ver.kafka>
     <ver.logback>1.5.24</ver.logback>
+    <ver.lz4-java>1.10.2</ver.lz4-java>
     <ver.maven-assembly>3.8.0</ver.maven-assembly>
     <ver.maven-clean>3.5.0</ver.maven-clean>
     <ver.maven-compiler>3.14.1</ver.maven-compiler>
@@ -113,6 +114,20 @@
       <groupId>org.apache.kafka</groupId>
       <artifactId>connect-api</artifactId>
       <version>${ver.kafka}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.lz4</groupId>
+          <artifactId>lz4-java</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- Source: https://mvnrepository.com/artifact/at.yawk.lz4/lz4-java -->
+    <dependency>
+      <groupId>at.yawk.lz4</groupId>
+      <artifactId>lz4-java</artifactId>
+      <version>${ver.lz4-java}</version>
+      <scope>compile</scope>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/io.debezium/debezium-core -->
