@@ -126,8 +126,8 @@ public class CompareFilesCommand extends BaseComparisonCommand {
         }
 
         // Validate include schema files
-        for (Path includeSchema : includeSchemas) {
-            validateSchemaFile(includeSchema, "Include schema");
+        for (final Path includeSchema : includeSchemas) {
+            validateSchemaFile(includeSchema, "Included schema");
         }
 
         // Validate output file
@@ -170,7 +170,7 @@ public class CompareFilesCommand extends BaseComparisonCommand {
                 nextSchemaFile.toFile().length());
         if (!includeSchemas.isEmpty()) {
             LOG.debug("  Include Schemas: {} file(s)", includeSchemas.size());
-            for (Path includeSchema : includeSchemas) {
+            for (final Path includeSchema : includeSchemas) {
                 LOG.debug("    - {} (exists: {}, size: {} bytes)",
                         includeSchema.toAbsolutePath().normalize(),
                         includeSchema.toFile().exists(),

@@ -88,7 +88,7 @@ public record CompareFilesResult(
             Schema.Parser currentParser = new Schema.Parser();
 
             // Pre-parse include schemas to populate type registry
-            for (Path includeSchema : schemaIncludes) {
+            for (final Path includeSchema : schemaIncludes) {
                 LOG.trace("Pre-parsing include schema: {}", includeSchema);
                 currentParser.parse(includeSchema.toFile());
             }
@@ -106,7 +106,7 @@ public record CompareFilesResult(
             Schema.Parser nextParser = new Schema.Parser();
 
             // Pre-parse include schemas to populate type registry
-            for (Path includeSchema : schemaIncludes) {
+            for (final Path includeSchema : schemaIncludes) {
                 LOG.trace("Pre-parsing include schema: {}", includeSchema);
                 nextParser.parse(includeSchema.toFile());
             }
