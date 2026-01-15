@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.github.kafkesc</groupId>
@@ -48,36 +48,36 @@
     <const.mainClass>io.snyk.skemium.SkemiumMain</const.mainClass>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <ver.avro>1.12.0</ver.avro>
-    <ver.commons-codec>1.18.0</ver.commons-codec>
-    <ver.commons-compress>1.27.1</ver.commons-compress>
-    <ver.commons-lang3>3.18.0</ver.commons-lang3>
+    <ver.avro>1.12.1</ver.avro>
+    <ver.commons-codec>1.20.0</ver.commons-codec>
+    <ver.commons-compress>1.28.0</ver.commons-compress>
+    <ver.commons-lang3>3.20.0</ver.commons-lang3>
     <ver.debezium>3.0.8.Final</ver.debezium>
-    <ver.jackson>2.20.0</ver.jackson>
+    <ver.jackson>2.20.1</ver.jackson>
     <!--
       All versions of Jackson libraries have the same versioning, but for some reason `jackson-annotations@2.20.0`
       has been released with the odd version string `@2.20`.
       This will likely be rectified later.
     -->
     <ver.jackson-annotations>2.20</ver.jackson-annotations>
-    <ver.jgit>7.4.0.202509020913-r</ver.jgit>
-    <ver.junit-jupiter>5.13.4</ver.junit-jupiter>
-    <ver.kafka-connect-avro-converter>7.9.4</ver.kafka-connect-avro-converter>
+    <ver.jgit>7.5.0.202512021534-r</ver.jgit>
+    <ver.junit-jupiter>5.14.2</ver.junit-jupiter>
+    <ver.kafka-connect-avro-converter>7.9.5</ver.kafka-connect-avro-converter>
     <ver.kafka>3.9.1</ver.kafka>
-    <ver.logback>1.5.20</ver.logback>
-    <ver.maven-assembly>3.7.1</ver.maven-assembly>
+    <ver.logback>1.5.24</ver.logback>
+    <ver.maven-assembly>3.8.0</ver.maven-assembly>
     <ver.maven-clean>3.5.0</ver.maven-clean>
-    <ver.maven-compiler>3.14.0</ver.maven-compiler>
+    <ver.maven-compiler>3.14.1</ver.maven-compiler>
     <ver.maven-install>3.1.4</ver.maven-install>
-    <ver.maven-jar>3.4.2</ver.maven-jar>
-    <ver.maven-native>0.10.6</ver.maven-native>
+    <ver.maven-jar>3.5.0</ver.maven-jar>
+    <ver.maven-native>0.11.3</ver.maven-native>
     <ver.maven-os-plugin>1.7.1</ver.maven-os-plugin>
-    <ver.maven-resources>3.3.1</ver.maven-resources>
-    <ver.maven-surefire>3.5.3</ver.maven-surefire>
+    <ver.maven-resources>3.4.0</ver.maven-resources>
+    <ver.maven-surefire>3.5.4</ver.maven-surefire>
     <ver.picocli>4.7.7</ver.picocli>
     <ver.postgresql>42.7.8</ver.postgresql>
     <ver.slf4j>2.0.17</ver.slf4j>
-    <ver.testcontainers.postgresql>1.21.3</ver.testcontainers.postgresql>
+    <ver.testcontainers.postgresql>1.21.4</ver.testcontainers.postgresql>
   </properties>
 
   <dependencyManagement>
