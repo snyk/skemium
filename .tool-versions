@@ -1,6 +1,6 @@
 # Plugin: https://github.com/halcyon/asdf-maven
 # Releases: https://maven.apache.org/docs/history.html
-maven 3.9.9
+maven 3.9.12
 # Plugin: https://github.com/halcyon/asdf-java
 # Releases Adopt Open JDK: https://adoptium.net/en-GB/temurin/release-notes/
 # Releases OracleGraalVM: https://www.graalvm.org/release-notes/
@@ -8,11 +8,11 @@ maven 3.9.9
 # NOTE:
 #  * use Adopt Open JDK when working locally and don't need a native build (target: `mvn package assembly:single`)
 #  * use Oracle GraalVM when you do (target `mvn package native:compile-no-fork`)
-java adoptopenjdk-21.0.7+6.0.LTS
-#java oracle-graalvm-21.0.7
+java adoptopenjdk-21.0.9+10.0.LTS
+#java oracle-graalvm-21.0.8
 # Plugin: https://github.com/nirfuchs/asdf-snyk
 # Releases: https://github.com/snyk/cli/releases
-snyk 1.1300.1
+snyk 1.1302.0
 # Plugin: https://github.com/particledecay/asdf-task
 # Changelog: https://taskfile.dev/changelog/
-task 3.45.4
+task 3.46.4

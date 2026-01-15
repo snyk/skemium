@@ -526,7 +526,7 @@ and the only manual step is to:
 
 1. ensure all PRs we aim to merge and release are merged
 2. figure out what the next version should be, by following [Semantic Versioning] principles: e.g. `$NEXT_VERSION`
-3. tag `main` with the new version: `task tag-version -- $NEXT_VERSION`
+3. tag `main` and update `pom.xml` with the new version: `task tag-version -- $NEXT_VERSION`
 4. push the new tag to the `main` branch of the repo: `git push origin main --follow-tags --tags`
 5. Go to https://github.com/snyk/skemium/actions and confirm the release process has started
 
