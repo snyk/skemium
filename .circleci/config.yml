@@ -8,7 +8,7 @@ jobs:
   security-scans:
     resource_class: medium
     docker:
-      - image: cimg/openjdk:23.0.2
+      - image: cimg/openjdk:21.0.9
     steps:
       - checkout
       - prodsec/security_scans:
