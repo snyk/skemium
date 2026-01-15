@@ -85,7 +85,7 @@ public record CompareFilesResult(
         final Schema currentSchema;
         try {
             LOG.trace("Loading current schema from: {}", currentSchemaFile);
-            Schema.Parser currentParser = new Schema.Parser();
+            final Schema.Parser currentParser = new Schema.Parser();
 
             // Pre-parse include schemas to populate type registry
             for (final Path includeSchema : schemaIncludes) {
@@ -103,7 +103,7 @@ public record CompareFilesResult(
         final Schema nextSchema;
         try {
             LOG.trace("Loading next schema from: {}", nextSchemaFile);
-            Schema.Parser nextParser = new Schema.Parser();
+            final Schema.Parser nextParser = new Schema.Parser();
 
             // Pre-parse include schemas to populate type registry
             for (final Path includeSchema : schemaIncludes) {
