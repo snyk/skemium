@@ -320,6 +320,41 @@ The command takes 2 Avro schema files and compares them applying the given [Sche
 `compare-files` executes a [Schema Compatibility] check and reports on the result.
 Exit Code will be `0` in case of success, `1` otherwise.
 
+### Including external type definitions
+
+When your schema references types defined in separate files, the Avro parser needs those type definitions to be available. Use the `--include-schema` / `-s` option to include additional schema files for type resolution.
+
+For example, if your main schema references an `Issue` type defined in another file:
+
+```json
+{
+  "name": "issues",
+  "type": {
+    "type": "array",
+    "items": "io.snyk.events.issue.Issue"
+  }
+}
+```
+
+You can include the `Issue` type definition:
+
+```shell
+skemium compare-files \
+  --include-schema issue-type.avsc \
+  base/main-schema.avsc \
+  current/main-schema.avsc
+```
+
+Multiple type definitions can be included by repeating the option:
+
+```shell
+skemium compare-files \
+  -s types/issue.avsc \
+  -s types/project.avsc \
+  base/event-schema.avsc \
+  current/event-schema.avsc
+```
+
 ### CI mode for file comparison
 
 Similar to the `compare` command, `compare-files` supports a `--ci-mode` flag that will force a failure when any schema changes are detected, even if they are compatible. This ensures that all schema modifications are explicitly acknowledged.
@@ -338,7 +373,8 @@ $ skemium help compare-files
 
 Compares two Avro Schema (.avsc) files
 
-skemium compare-files [-iv] [-c=<compatibilityLevel>] [-o=<output>] CURR_SCHEMA_FILE NEXT_SCHEMA_FILE
+skemium compare-files [-iv] [-c=<compatibilityLevel>] [-o=<output>]
+                      [-s=<includeSchemas>]... CURR_SCHEMA_FILE NEXT_SCHEMA_FILE
 
 Description:
 
@@ -358,6 +394,11 @@ Options:
   -i, --ci, --ci-mode     CI mode - Fail when schema changes are detected (env: CI_MODE - optional)
                             Default: false
   -o, --output=<output>   Output file (JSON); overridden if exists (env: OUTPUT_FILE - optional)
+  -s, --include-schema=<includeSchemas>
+                          Additional schema files to include for type resolution.
+                          These schemas are parsed before the main schema files,
+                          populating the parser's type registry to enable resolution
+                          of referenced types. Can be specified multiple times.
   -v, --verbose           Logging Verbosity - use multiple -v to increase (default: ERROR)
 ```
 </details>
