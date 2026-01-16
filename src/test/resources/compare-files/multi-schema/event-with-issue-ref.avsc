@@ -1,0 +1,59 @@
+{
+  "fields": [
+    {
+      "name": "operation",
+      "doc": "the project operation that triggered this message",
+      "type": {
+        "type": "enum",
+        "name": "operation",
+        "symbols": ["created", "updated", "deleted", "moved"]
+      }
+    },
+    {
+      "name": "payloadURL",
+      "doc": "the issues data, if it didn't fit into the message itself. The linked object is an OCF-encoded file based on the issue schema",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "issues",
+      "doc": "the issues data, unless it overflowed and was offloaded into the payloadUrl",
+      "type": {
+        "type": "array",
+        "items": { "type": "Issue", "name": "issue" }
+      },
+      "default": []
+    },
+    {
+      "name": "numIssues",
+      "doc": "the number of issues that are contained in either this message or the linked payload",
+      "type": "int"
+    },
+    {
+      "name": "projectEventTimestamp",
+      "doc": "timestamp of the original project event that has been processed",
+      "type": { "logicalType": "timestamp-millis", "type": "long" }
+    },
+    {
+      "name": "orgPublicID",
+      "doc": "the organisation where the issues belong to. If the project was moved, this is the UUID of the new organisation",
+      "type": { "logicalType": "UUID", "type": "string" }
+    },
+    {
+      "name": "groupPublicID",
+      "doc": "the public ID (UUID) of the group, if the organisation belongs to a group.",
+      "type": ["null", { "logicalType": "UUID", "type": "string" }]
+    },
+    {
+      "name": "projectPublicID",
+      "doc": "the public ID (UUID) of the project",
+      "type": { "logicalType": "UUID", "type": "string" }
+    }
+  ],
+  "name": "ProjectIssuesChanged",
+  "namespace": "io.snyk.events.issue",
+  "type": "record"
+}
+
+
+

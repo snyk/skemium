@@ -1,0 +1,76 @@
+{
+  "type": "record",
+  "namespace": "io.snyk.events.issue",
+  "name": "Issue",
+  "doc": "",
+  "fields": [
+    { "type": "string", "name": "id", "doc": "the ID of this issue" },
+    {
+      "type": { "type": "long", "logicalType": "timestamp-millis" },
+      "name": "createdAt",
+      "doc": "the creation time of this issue"
+    },
+    {
+      "type": ["null", {
+        "type": "enum",
+        "name": "effectiveSeverityLevel",
+        "symbols": ["critical", "high", "medium", "low", "info"]
+      }],
+      "name": "effectiveSeverityLevel",
+      "doc": "Note: this is currently not populated! The computed effective severity of this issue. This is either the highest level from all included severities, or an overridden value set via group level policy."
+    },
+    {
+      "type": "boolean",
+      "name": "ignored",
+      "doc": "A flag indicating if the issue is being ignored"
+    },
+    {
+      "type": "string",
+      "name": "key",
+      "doc": "An opaque key used for uniquely identifying this issue across test runs, within a project."
+    },
+    {
+      "type": {
+        "type": "enum",
+        "name": "status",
+        "symbols": ["open", "resolved"]
+      },
+      "name": "status",
+      "doc": "The status of this issue, as derived from the resolution info (which is not part of this schema)"
+    },
+    {
+      "type": "string",
+      "name": "title",
+      "doc": "A human-readable title for this issue"
+    },
+    {
+      "type": {
+        "type": "enum",
+        "name": "type",
+        "symbols": [
+          "cloud",
+          "code",
+          "config",
+          "custom",
+          "license",
+          "package_vulnerability"
+        ]
+      },
+      "name": "type",
+      "doc": "the type of the issue"
+    },
+    {
+      "type": { "type": "long", "logicalType": "timestamp-millis" },
+      "name": "updatedAt",
+      "doc": "The time when this issue was last modified"
+    },
+    {
+      "type": ["null", { "type": "long", "logicalType": "timestamp-millis" }],
+      "name": "deletedAt",
+      "doc": "The time when this issue was last modified"
+    }
+  ]
+}
+
+
+
