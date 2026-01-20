@@ -55,5 +55,6 @@ jobs:
         if: github.ref_type == 'tag'
         with:
           generate_release_notes: true
+          append_body: false
           files: |
             target/${{ env.proj_name }}-${{ env.proj_ver  }}-${{ env.os_name }}-${{ env.os_arch }}
