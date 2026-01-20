@@ -20,6 +20,7 @@ jobs:
   gitleaks:
     name: Gitleaks
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -34,6 +35,7 @@ jobs:
   snyk:
     name: Snyk
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v6
       - name: Install Snyk
