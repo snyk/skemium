@@ -59,7 +59,7 @@
       has been released with the odd version string `@2.20`.
       This will likely be rectified later.
     -->
-    <ver.jackson-annotations>2.20</ver.jackson-annotations>
+    <ver.jackson-annotations>2.21</ver.jackson-annotations>
     <ver.jgit>7.5.0.202512021534-r</ver.jgit>
     <ver.junit-jupiter>5.14.2</ver.junit-jupiter>
     <ver.kafka-connect-avro-converter>7.9.5</ver.kafka-connect-avro-converter>
