@@ -53,7 +53,7 @@
     <ver.commons-compress>1.28.0</ver.commons-compress>
     <ver.commons-lang3>3.20.0</ver.commons-lang3>
     <ver.debezium>3.0.8.Final</ver.debezium>
-    <ver.jackson>2.20.1</ver.jackson>
+    <ver.jackson>2.21.0</ver.jackson>
     <!--
       All versions of Jackson libraries have the same versioning, but for some reason `jackson-annotations@2.20.0`
       has been released with the odd version string `@2.20`.
