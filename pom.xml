@@ -62,7 +62,7 @@
     <ver.jackson-annotations>2.20</ver.jackson-annotations>
     <ver.jgit>7.5.0.202512021534-r</ver.jgit>
     <ver.junit-jupiter>5.14.2</ver.junit-jupiter>
-    <ver.kafka-connect-avro-converter>7.9.5</ver.kafka-connect-avro-converter>
+    <ver.kafka-connect-avro-converter>8.1.1</ver.kafka-connect-avro-converter>
     <ver.kafka>3.9.1</ver.kafka>
     <ver.logback>1.5.24</ver.logback>
     <ver.lz4-java>1.10.2</ver.lz4-java>
