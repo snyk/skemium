@@ -5,7 +5,7 @@
 
   <groupId>com.github.kafkesc</groupId>
   <artifactId>skemium</artifactId>
-  <version>1.2.0</version>
+  <version>1.2.1</version>
 
   <name>skemium</name>
   <url>https://github.com/kafkesc/skemium</url>
