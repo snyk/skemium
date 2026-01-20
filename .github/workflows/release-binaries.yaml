@@ -21,10 +21,12 @@ jobs:
           - on: ubuntu-24.04-arm
             arch: aarch64
             os: linux
-          - on: macos-13
+          # NOTE: As per https://github.com/actions/runner-images/issues/13046
+          # `macos-15-intel` is the last supported `macos` image based on Intel x86_64 CPUs.
+          - on: macos-15-intel
             arch: x86_64
             os: macos
-          - on: macos-15
+          - on: macos-latest
             arch: aarch64
             os: macos
     steps:
@@ -53,5 +55,6 @@ jobs:
         if: github.ref_type == 'tag'
         with:
           generate_release_notes: true
+          append_body: false
           files: |
             target/${{ env.proj_name }}-${{ env.proj_ver  }}-${{ env.os_name }}-${{ env.os_arch }}
