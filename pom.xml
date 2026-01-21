@@ -71,7 +71,7 @@
     <ver.maven-compiler>3.14.1</ver.maven-compiler>
     <ver.maven-install>3.1.4</ver.maven-install>
     <ver.maven-jar>3.5.0</ver.maven-jar>
-    <ver.maven-native>0.11.3</ver.maven-native>
+    <ver.maven-native>0.11.4</ver.maven-native>
     <ver.maven-os-plugin>1.7.1</ver.maven-os-plugin>
     <ver.maven-resources>3.4.0</ver.maven-resources>
     <ver.maven-surefire>3.5.4</ver.maven-surefire>
