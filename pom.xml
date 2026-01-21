@@ -65,7 +65,7 @@
     <ver.kafka-connect-avro-converter>7.9.5</ver.kafka-connect-avro-converter>
     <ver.kafka>3.9.1</ver.kafka>
     <ver.logback>1.5.25</ver.logback>
-    <ver.lz4-java>1.10.2</ver.lz4-java>
+    <ver.lz4-java>1.10.3</ver.lz4-java>
     <ver.maven-assembly>3.8.0</ver.maven-assembly>
     <ver.maven-clean>3.5.0</ver.maven-clean>
     <ver.maven-compiler>3.14.1</ver.maven-compiler>
