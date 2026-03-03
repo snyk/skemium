@@ -76,7 +76,7 @@
     <ver.maven-resources>3.4.0</ver.maven-resources>
     <ver.maven-surefire>3.5.4</ver.maven-surefire>
     <ver.picocli>4.7.7</ver.picocli>
-    <ver.postgresql>42.7.9</ver.postgresql>
+    <ver.postgresql>42.7.10</ver.postgresql>
     <ver.slf4j>2.0.17</ver.slf4j>
     <ver.testcontainers.postgresql>1.21.4</ver.testcontainers.postgresql>
   </properties>
