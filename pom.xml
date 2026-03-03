@@ -49,7 +49,7 @@
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <ver.avro>1.12.1</ver.avro>
-    <ver.commons-codec>1.20.0</ver.commons-codec>
+    <ver.commons-codec>1.21.0</ver.commons-codec>
     <ver.commons-compress>1.28.0</ver.commons-compress>
     <ver.commons-lang3>3.20.0</ver.commons-lang3>
     <ver.debezium>3.0.8.Final</ver.debezium>
