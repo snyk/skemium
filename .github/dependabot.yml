@@ -8,6 +8,10 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: [ "version-update:semver-major" ]
+    groups:
+      java-dependencies:
+        patterns:
+          - "*"
     labels:
       - "dependencies"
       - "java"
@@ -20,6 +24,10 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    groups:
+      github-actions:
+        patterns:
+          - "*"
     labels:
       - "dependencies"
       - "github-actions"
