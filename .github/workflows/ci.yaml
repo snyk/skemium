@@ -68,7 +68,7 @@ jobs:
       - name: Did Build/Test cause a change? (i.e. schemas changes? linters?)
         run: git diff --exit-code
       - name: Collect Test Reports
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: success() || failure()
         with:
           name: JUnit5 Tests
