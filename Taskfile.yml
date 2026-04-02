@@ -9,6 +9,11 @@ tasks:
     cmds:
       - mvn clean
 
+  compile:
+    deps: [clean]
+    cmds:
+      - mvn compile
+
   package:
     deps: [clean]
     cmds:
