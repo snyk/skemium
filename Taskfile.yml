@@ -35,3 +35,19 @@ tasks:
     cmds:
       - snyk test . --severity-threshold={{.SNYK_SEVERITY}}  --all-projects
       - snyk code test . --severity-threshold={{.SNYK_SEVERITY}} --all-projects
+
+  deps.show-patch-updates:
+    desc: Show available patch-only dependency updates
+    cmd: >-
+      mvn versions:display-dependency-updates
+      -DallowMajorUpdates=false
+      -DallowMinorUpdates=false
+      -DallowIncrementalUpdates=true
+
+  deps.show-minor-updates:
+    desc: Show available minor+patch-only dependency updates
+    cmd: >-
+      mvn versions:display-dependency-updates
+      -DallowMajorUpdates=false
+      -DallowMinorUpdates=true
+      -DallowIncrementalUpdates=true
