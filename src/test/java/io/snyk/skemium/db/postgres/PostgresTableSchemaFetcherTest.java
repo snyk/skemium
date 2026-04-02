@@ -23,18 +23,18 @@ class PostgresTableSchemaFetcherTest extends WithPostgresContainer {
             final List<TableSchema> tableSchemas = fetcher.fetch(DB_NAME, null, null, null);
 
             List<String> expectedTableSchemaIds = List.of(
-                    "chinook.public.album",
-                    "chinook.public.artist",
-                    "chinook.public.customer",
-                    "chinook.public.employee",
-                    "chinook.public.genre",
-                    "chinook.public.invoice",
-                    "chinook.public.invoice_line",
-                    "chinook.public.media_type",
-                    "chinook.public.playlist",
-                    "chinook.public.playlist_track",
-                    "chinook.public.playlist_track_no_pkey",
-                    "chinook.public.track"
+                    "public.album",
+                    "public.artist",
+                    "public.customer",
+                    "public.employee",
+                    "public.genre",
+                    "public.invoice",
+                    "public.invoice_line",
+                    "public.media_type",
+                    "public.playlist",
+                    "public.playlist_track",
+                    "public.playlist_track_no_pkey",
+                    "public.track"
             );
 
             assertEquals(expectedTableSchemaIds.size(), tableSchemas.size());
@@ -52,8 +52,8 @@ class PostgresTableSchemaFetcherTest extends WithPostgresContainer {
             final List<TableSchema> tableSchemas = fetcher.fetch(DB_NAME, Set.of("public"), Set.of("customer", "invoice"), null);
 
             List<String> expectedTableSchemaIds = List.of(
-                    "chinook.public.customer",
-                    "chinook.public.invoice");
+                    "public.customer",
+                    "public.invoice");
 
             assertEquals(expectedTableSchemaIds.size(), tableSchemas.size());
             final Map<String, TableSchema> tableSchemasMap = tableSchemas.stream()
@@ -78,9 +78,9 @@ class PostgresTableSchemaFetcherTest extends WithPostgresContainer {
             final Map<String, TableSchema> tableSchemasMap = tableSchemas.stream()
                     .collect(Collectors.toMap(t -> t.id().toString(), Function.identity()));
 
-            final TableSchema customerTableSchema = tableSchemasMap.get("chinook.public.customer");
-            final TableSchema albumTableSchema = tableSchemasMap.get("chinook.public.album");
-            final TableSchema artistTableSchema = tableSchemasMap.get("chinook.public.artist");
+            final TableSchema customerTableSchema = tableSchemasMap.get("public.customer");
+            final TableSchema albumTableSchema = tableSchemasMap.get("public.album");
+            final TableSchema artistTableSchema = tableSchemasMap.get("public.artist");
 
             assertNull(customerTableSchema.valueSchema().field("first_name"));
             assertNull(customerTableSchema.valueSchema().field("last_name"));

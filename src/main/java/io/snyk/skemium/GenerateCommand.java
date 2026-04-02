@@ -149,7 +149,7 @@ public class GenerateCommand extends BaseCommand {
 
             // Map table schemas to avro schemas
             final List<TableAvroSchemas> tablesAvroSchemas = tableSchemas.stream().parallel()
-                    .map(TableAvroSchemas::build)
+                    .map(ts -> TableAvroSchemas.build(ts, dbName))
                     .sorted((a, b) -> a.identifier().compareTo(b.identifier()))
                     .toList();
 

@@ -70,7 +70,7 @@ public class GenerateCommandTest extends WithPostgresContainer {
             final TableAvroSchemas tableSchemas = TableAvroSchemas.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
             assertEquals(schemaMetaEntry.getValue(), tableSchemas.checksum());
         }
-        assertEquals("52baf9d72eeb42571ffdfb2051447a4af1fb1896a8afb202be57b2485f28e8d3", meta.checksumSHA256());
+        assertEquals("69abd6860af1b4b6177e2677c8ca5e9ccfe4b82f6ef9ecf8a583f716e565c0c0", meta.checksumSHA256());
 
         // ... VCS information
         assertNotNull(meta.vcsCommit());
@@ -118,7 +118,7 @@ public class GenerateCommandTest extends WithPostgresContainer {
             final TableAvroSchemas tableSchemas = TableAvroSchemas.loadFrom(TEMP_DIR, schemaMetaEntry.getKey());
             assertEquals(schemaMetaEntry.getValue(), tableSchemas.checksum());
         }
-        assertEquals("9c7d6c1882f380e607a7e5d14a1ad1f0a9f8712d340aa064d3596888c4114afa", meta.checksumSHA256());
+        assertEquals("fc9c8d5ed2368c6b1b58290ac64131654535522e7a2e669f9f34c9b8aec64ac4", meta.checksumSHA256());
 
         // ... VCS information
         assertNotNull(meta.vcsCommit());

@@ -30,6 +30,9 @@ public class CatalogSchemaAndTableTopicNamingStrategy extends AbstractTopicNamin
 
     @Override
     public String dataChangeTopic(final TableId id) {
-        return String.format("%s.%s.%s", id.catalog(), id.schema(), id.table());
+        if (id.catalog() != null) {
+            return String.format("%s.%s.%s", id.catalog(), id.schema(), id.table());
+        }
+        return String.format("%s.%s", id.schema(), id.table());
     }
 }
