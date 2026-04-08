@@ -42,8 +42,24 @@ public record TableAvroSchemas(@Nonnull String identifier,
 
     /// Builds a [TableAvroSchemas] from a Debezium [TableSchema].
     public static TableAvroSchemas build(final TableSchema debeziumTableSchema) {
+        return build(debeziumTableSchema, null);
+    }
+
+    /// Builds a [TableAvroSchemas] from a Debezium [TableSchema], using the given database (catalog) name.
+    ///
+    /// Since Debezium 3.2.x, the PostgreSQL connector no longer populates the catalog in [io.debezium.relational.TableId],
+    /// so the database name must be provided explicitly to form `database.schema.table` identifiers.
+    ///
+    /// @param debeziumTableSchema The Debezium [TableSchema]
+    /// @param database The database (catalog) name; if `null`, the identifier is derived from [TableSchema] as-is
+    public static TableAvroSchemas build(final TableSchema debeziumTableSchema, @Nullable final String database) {
+        final String baseIdentifier = debeziumTableSchema.id().identifier();
+        final String identifier = (database != null && !database.isEmpty() && debeziumTableSchema.id().catalog() == null)
+                ? database + "." + baseIdentifier
+                : baseIdentifier;
+
         return new TableAvroSchemas(
-                debeziumTableSchema.id().identifier(),
+                identifier,
                 kafkaConnectSchemaToAvroSchema(debeziumTableSchema.keySchema()),
                 kafkaConnectSchemaToAvroSchema(debeziumTableSchema.valueSchema()),
                 kafkaConnectSchemaToAvroSchema(debeziumTableSchema.getEnvelopeSchema().schema())
