@@ -54,7 +54,7 @@
     <ver.commons-codec>1.21.0</ver.commons-codec>
     <ver.commons-compress>1.28.0</ver.commons-compress>
     <ver.commons-lang3>3.20.0</ver.commons-lang3>
-    <ver.debezium>3.2.7.Final</ver.debezium>
+    <ver.debezium>3.5.0.Final</ver.debezium>
     <!--
       All versions of Jackson libraries have the same versioning, but for some reason `jackson-annotations@X.Y`
       doesn't use the patch version.
