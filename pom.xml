@@ -67,7 +67,7 @@
     <ver.logback>1.5.32</ver.logback>
     <ver.lz4-java>1.10.4</ver.lz4-java>
     <ver.picocli>4.7.7</ver.picocli>
-    <ver.postgresql>42.7.10</ver.postgresql>
+    <ver.postgresql>42.7.11</ver.postgresql>
     <ver.slf4j>2.0.17</ver.slf4j>
 
     <!-- Test deps -->
