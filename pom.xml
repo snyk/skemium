@@ -65,7 +65,7 @@
     <ver.kafka-connect-avro-converter>7.9.5</ver.kafka-connect-avro-converter>
     <ver.kafka>3.9.2</ver.kafka>
     <ver.logback>1.5.32</ver.logback>
-    <ver.lz4-java>1.10.4</ver.lz4-java>
+    <ver.lz4-java>1.11.0</ver.lz4-java>
     <ver.picocli>4.7.7</ver.picocli>
     <ver.postgresql>42.7.11</ver.postgresql>
     <ver.slf4j>2.0.17</ver.slf4j>
