@@ -51,7 +51,7 @@ jobs:
           echo "os_name=$(mvn help:evaluate -Dexpression=os.detected.name -q -DforceStdout)" >> $GITHUB_ENV
           echo "os_arch=$(mvn help:evaluate -Dexpression=os.detected.arch -q -DforceStdout)" >> $GITHUB_ENV
       - name: Release Binary
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: github.ref_type == 'tag'
         with:
           generate_release_notes: true
