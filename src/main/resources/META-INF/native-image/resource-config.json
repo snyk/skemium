@@ -4,6 +4,9 @@
       "glob": "io/debezium/connector/postgresql/build.version"
     },
     {
+      "glob": "io/debezium/openlineage/build.version"
+    },
+    {
       "glob": "META-INF/MANIFEST.MF"
     },
     {
