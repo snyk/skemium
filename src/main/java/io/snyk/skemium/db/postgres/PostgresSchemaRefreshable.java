@@ -1,10 +1,12 @@
 package io.snyk.skemium.db.postgres;
 
+import io.debezium.connector.common.CdcSourceTaskContext;
 import io.debezium.connector.postgresql.PostgresConnectorConfig;
 import io.debezium.connector.postgresql.PostgresSchema;
 import io.debezium.connector.postgresql.PostgresValueConverter;
 import io.debezium.connector.postgresql.connection.PostgresConnection;
 import io.debezium.connector.postgresql.connection.PostgresDefaultValueConverter;
+import io.debezium.relational.CustomConverterRegistry;
 import io.debezium.relational.TableId;
 import io.debezium.spi.topic.TopicNamingStrategy;
 
@@ -16,8 +18,12 @@ import java.sql.SQLException;
  * but here we need it to load tables' schemas.
  */
 class PostgresSchemaRefreshable extends PostgresSchema {
-    PostgresSchemaRefreshable(PostgresConnectorConfig config, PostgresDefaultValueConverter defaultValueConverter, TopicNamingStrategy<TableId> topicNamingStrategy, PostgresValueConverter valueConverter) {
-        super(config, defaultValueConverter, topicNamingStrategy, valueConverter);
+    PostgresSchemaRefreshable(CdcSourceTaskContext<PostgresConnectorConfig> taskContext,
+                              PostgresDefaultValueConverter defaultValueConverter,
+                              TopicNamingStrategy<TableId> topicNamingStrategy,
+                              PostgresValueConverter valueConverter,
+                              CustomConverterRegistry customConverterRegistry) {
+        super(taskContext, defaultValueConverter, topicNamingStrategy, valueConverter, customConverterRegistry);
     }
 
     @Override

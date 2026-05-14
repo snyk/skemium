@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-05-14
+
+> [!NOTE]
+> In an excess of caution, we are bumping the minor version of Skemium to match the bumping in minor version of Debezium.
+> As Debezium is a _core_ dependency here, we prefer to signal this change more clearly than with a patch version bump.
+> BUT, in our testing though, not breaking change has surfaced in Skemium.
+
+### Changed
+
+- Bumped Debezium from `3.2.7.Final` to `3.4.3.Final`.
+- Bumped grouped Java dependencies: JUnit BOM `5.14.3` → `5.14.4`, `lz4-java` `1.10.4` → `1.11.0`, `slf4j-api` `2.0.17` → `2.0.18`, `commons-codec` `1.21.0` → `1.22.0`, and Jackson modules (`jackson-core`, `jackson-databind`, `jackson-datatype-jsr310`, `jackson-dataformat-avro`) `2.21.2` → `2.21.3`.
+- Bumped GitHub Actions `softprops/action-gh-release` from `2` to `3` in the release workflows.
+- Updated `CODEOWNERS` (PRODSEC-10215).
+
+### Fixed
+
+- Upgraded `org.postgresql:postgresql` to `42.7.11` to address security vulnerabilities.
+
 ## [1.3.0] - 2026-04-02
 
 ### Added
