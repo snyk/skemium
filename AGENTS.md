@@ -230,8 +230,8 @@ All dependency versions are centralized in `pom.xml` `<properties>` using the `v
 
 ```xml
 <ver.avro>1.12.1</ver.avro>
-<ver.jackson>2.21.1</ver.jackson>
-<ver.debezium>3.0.8.Final</ver.debezium>
+<ver.jackson>2.21.3</ver.jackson>
+<ver.debezium>3.4.3.Final</ver.debezium>
 ```
 
 Dependabot is configured (`.github/dependabot.yml`) for automated dependency updates. Configuration:
@@ -327,7 +327,7 @@ git push origin main --follow-tags --tags      # Push tag triggers release workf
 
 10. **Environment variable fallback**: All CLI options support environment variable configuration via Picocli's `${env:VAR_NAME}` defaultValue syntax (e.g., `DB_HOSTNAME`, `DB_PORT`, `COMPATIBILITY`, `CI_MODE`).
 
-11. **`PostgresSchemaRefreshable` is intentionally package-local**: It extends `PostgresSchema` to expose the `refresh()` method which is hidden inside the Debezium Postgres Connector library. This is necessary to load table schemas. Don't make it public.
+11. **`PostgresSchemaRefreshable` is intentionally package-local**: It extends `PostgresSchema` to expose the `refresh()` method which is hidden inside the Debezium Postgres Connector library. This is necessary to load table schemas. Don't make it public. Its constructor must mirror the upstream `PostgresSchema` constructor, which **changed in Debezium 3.4** to take a `CdcSourceTaskContext<PostgresConnectorConfig>` (instead of a bare `PostgresConnectorConfig`) plus a `CustomConverterRegistry`. `PostgresTableSchemaFetcher` constructs both inline (`new CdcSourceTaskContext<>(rawConfig, connectorConfig, connectorConfig.getCustomMetricTags())` and `new CustomConverterRegistry(null)` — `null` yields an empty converter list). Future Debezium upgrades may change this signature again; check `io.debezium.connector.postgresql.PostgresSchema` and `PostgresConnectorTask#start()` in the Debezium sources for the canonical construction pattern.
 
 12. **Topic naming strategy**: `CatalogSchemaAndTableTopicNamingStrategy` formats topics as `<catalog>.<schema>.<table>` (e.g., `chinook.public.artist`). This naming is also used as the table identifier (`TableAvroSchemas.identifier()`).
 

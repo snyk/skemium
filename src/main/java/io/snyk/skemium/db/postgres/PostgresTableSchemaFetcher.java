@@ -1,11 +1,13 @@
 package io.snyk.skemium.db.postgres;
 
 import io.debezium.config.Configuration;
+import io.debezium.connector.common.CdcSourceTaskContext;
 import io.debezium.connector.postgresql.PostgresConnectorConfig;
 import io.debezium.connector.postgresql.PostgresValueConverter;
 import io.debezium.connector.postgresql.TypeRegistry;
 import io.debezium.connector.postgresql.connection.PostgresConnection;
 import io.debezium.connector.postgresql.connection.PostgresDefaultValueConverter;
+import io.debezium.relational.CustomConverterRegistry;
 import io.debezium.relational.TableId;
 import io.debezium.relational.TableSchema;
 import io.debezium.relational.Tables;
@@ -137,10 +139,11 @@ public class PostgresTableSchemaFetcher implements TableSchemaFetcher {
                 : new PostgresConnectorConfig(configuration);
 
         try (final PostgresSchemaRefreshable postgresSchema = new PostgresSchemaRefreshable(
-                connectorConfig,
+                new CdcSourceTaskContext<>(configuration, connectorConfig, connectorConfig.getCustomMetricTags()),
                 defaultValueConverter,
                 CatalogSchemaAndTableTopicNamingStrategy.create(connectorConfig),
-                valueConverter)) {
+                valueConverter,
+                new CustomConverterRegistry(null))) {
             postgresSchema.refresh(connection, true);
 
             for (final TableId tId : allSelectedTables) {
