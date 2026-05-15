@@ -120,11 +120,6 @@ schemas/                             # Avro schemas for Skemium's own output for
 ├── skemium.generate.meta.avsc       # Schema for `.skemium.meta.json`
 ├── skemium.compare.result.avsc      # Schema for `compare` JSON output
 └── skemium.compare-files.result.avsc # Schema for `compare-files` JSON output
-
-orb/                                 # CircleCI orb test fixtures
-└── test/
-    ├── migrations/                  # SQL migration scripts (0001_setup, 0002_change, 0003_breaking_change)
-    └── schemas/                     # Pre-generated Avro schemas for orb testing
 ```
 
 ## Naming Conventions and Style

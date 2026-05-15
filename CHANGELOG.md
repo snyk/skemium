@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI build and native-binary smoke jobs are now skipped on PRs that touch only Markdown files, while Gitleaks and Snyk continue to run. See [#98](https://github.com/snyk/skemium/pull/98).
 - CI now cancels in-flight runs on the same branch / PR when a new commit is pushed, so only the latest commit's checks consume runner minutes (pushes to `main` are exempt and always run to completion). See [#98](https://github.com/snyk/skemium/pull/98).
 
+### Removed
+
+- Removed the `orb/` directory (CircleCI orb test fixtures: SQL migrations and pre-generated Avro schemas). We ended up not using these fixtures — they were never wired into any code, build script, CI workflow, or test in this repository.
+
 ## [1.4.1] - 2026-05-14
 
 ### Fixed
