@@ -74,3 +74,101 @@ jobs:
           name: JUnit5 Tests
           reporter: java-junit
           path: target/surefire-reports/*.xml
+
+  native_smoke_test:
+    name: Native Binary Smoke Test
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: 21
+          distribution: graalvm
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: maven
+          native-image-job-reports: true
+      - name: Build Native Binary
+        run: mvn -B package native:compile-no-fork -DskipTests
+      - name: Resolve Binary Path
+        run: |
+          set -euo pipefail
+          PROJ_NAME=$(mvn help:evaluate -Dexpression=project.name -q -DforceStdout)
+          PROJ_VER=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          OS_NAME=$(mvn help:evaluate -Dexpression=os.detected.name -q -DforceStdout)
+          OS_ARCH=$(mvn help:evaluate -Dexpression=os.detected.arch -q -DforceStdout)
+          BIN="$GITHUB_WORKSPACE/target/${PROJ_NAME}-${PROJ_VER}-${OS_NAME}-${OS_ARCH}"
+          test -x "$BIN" || { echo "Binary not found or not executable: $BIN"; ls -la "$GITHUB_WORKSPACE/target"; exit 1; }
+          echo "SKEMIUM_BIN=$BIN" >> "$GITHUB_ENV"
+      - name: Smoke - Binary boots and resolves build.version
+        run: |
+          set -euo pipefail
+          "$SKEMIUM_BIN" --version
+          "$SKEMIUM_BIN" --help
+      - name: Start PostgreSQL (Chinook fixture)
+        run: |
+          set -euo pipefail
+          docker run -d --name postgres \
+            --shm-size=128m \
+            -e POSTGRES_DB=chinook \
+            -e POSTGRES_USER=chinook-db-user \
+            -e POSTGRES_PASSWORD=chinook-db-pass \
+            -v "$GITHUB_WORKSPACE/src/test/resources/db_schema/chinook.initdb.sql:/docker-entrypoint-initdb.d/chinook.initdb.sql:ro" \
+            -p 5432:5432 \
+            postgres:17.2 \
+            -c wal_level=logical -c max_replication_slots=10 -c max_wal_senders=10
+          # Wait until Postgres is ready AND the init script has populated the chinook DB
+          for i in $(seq 1 60); do
+            if docker exec postgres pg_isready -U chinook-db-user -d chinook >/dev/null 2>&1; then
+              # Confirm the init script has run by checking for a known table
+              if docker exec -e PGPASSWORD=chinook-db-pass postgres \
+                  psql -U chinook-db-user -d chinook -tAc \
+                  "SELECT to_regclass('public.artist') IS NOT NULL" 2>/dev/null | grep -q '^t$'; then
+                echo "PostgreSQL ready with Chinook fixture loaded"
+                exit 0
+              fi
+            fi
+            sleep 2
+          done
+          echo "PostgreSQL did not become ready in time"
+          docker logs postgres
+          exit 1
+      - name: Smoke - generate
+        run: |
+          set -euo pipefail
+          OUT_DIR=$(mktemp -d)
+          "$SKEMIUM_BIN" generate \
+            --hostname localhost --port 5432 \
+            --database chinook \
+            --username chinook-db-user --password chinook-db-pass \
+            --table employee --table artist,album \
+            "$OUT_DIR"
+          test -f "$OUT_DIR/.skemium.meta.json"
+          test -f "$OUT_DIR/chinook.public.artist.key.avsc"
+          test -f "$OUT_DIR/chinook.public.artist.val.avsc"
+          test -f "$OUT_DIR/chinook.public.artist.env.avsc"
+          echo "GENERATE_OUT_DIR=$OUT_DIR" >> "$GITHUB_ENV"
+      - name: Smoke - compare (no changes => exit 0)
+        run: |
+          set -euo pipefail
+          "$SKEMIUM_BIN" compare \
+            --compatibility BACKWARD \
+            src/test/resources/schema_change-no_changes/current \
+            src/test/resources/schema_change-no_changes/next
+      - name: Smoke - compare-files (compatible => exit 0)
+        run: |
+          set -euo pipefail
+          "$SKEMIUM_BIN" compare-files \
+            src/test/resources/compare-files/valid-schemas/person-v1.avsc \
+            src/test/resources/compare-files/valid-schemas/person-v2-compatible.avsc
+      - name: Smoke - compare-files (--include-schema)
+        run: |
+          set -euo pipefail
+          "$SKEMIUM_BIN" compare-files \
+            --include-schema src/test/resources/compare-files/multi-schema/issue-type.avsc \
+            src/test/resources/compare-files/multi-schema/event-with-issue-ref.avsc \
+            src/test/resources/compare-files/multi-schema/event-with-issue-ref.avsc
+      - name: Stop PostgreSQL
+        if: always()
+        run: docker rm -f postgres || true
