@@ -6,6 +6,10 @@ on:
   push:
     branches: [ main ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 permissions:
   actions: read
   checks: write
@@ -17,6 +21,20 @@ env:
   SNYK_CLI_VERSION: v1.1300.1
 
 jobs:
+  changes:
+    name: Detect Changed Paths
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            code:
+              - '!**/*.md'
+
   gitleaks:
     name: Gitleaks
     runs-on: ubuntu-latest
@@ -54,6 +72,8 @@ jobs:
   build_and_test:
     name: Build & Test
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v6
@@ -78,6 +98,8 @@ jobs:
   native_smoke_test:
     name: Native Binary Smoke Test
     runs-on: ubuntu-24.04
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v6
