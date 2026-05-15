@@ -138,7 +138,7 @@ jobs:
         run: |
           set -euo pipefail
           OUT_DIR=$(mktemp -d)
-          "$SKEMIUM_BIN" generate \
+          "$SKEMIUM_BIN" generate -vv \
             --hostname localhost --port 5432 \
             --database chinook \
             --username chinook-db-user --password chinook-db-pass \
@@ -152,20 +152,20 @@ jobs:
       - name: Smoke - compare (no changes => exit 0)
         run: |
           set -euo pipefail
-          "$SKEMIUM_BIN" compare \
+          "$SKEMIUM_BIN" compare -vv \
             --compatibility BACKWARD \
             src/test/resources/schema_change-no_changes/current \
             src/test/resources/schema_change-no_changes/next
       - name: Smoke - compare-files (compatible => exit 0)
         run: |
           set -euo pipefail
-          "$SKEMIUM_BIN" compare-files \
+          "$SKEMIUM_BIN" compare-files -vv \
             src/test/resources/compare-files/valid-schemas/person-v1.avsc \
             src/test/resources/compare-files/valid-schemas/person-v2-compatible.avsc
       - name: Smoke - compare-files (--include-schema)
         run: |
           set -euo pipefail
-          "$SKEMIUM_BIN" compare-files \
+          "$SKEMIUM_BIN" compare-files -vv \
             --include-schema src/test/resources/compare-files/multi-schema/issue-type.avsc \
             src/test/resources/compare-files/multi-schema/event-with-issue-ref.avsc \
             src/test/resources/compare-files/multi-schema/event-with-issue-ref.avsc
