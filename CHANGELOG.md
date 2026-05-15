@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
+### Changed
+
+- CI now builds a GraalVM native binary on every PR and runs a smoke test against each subcommand (`generate`, `compare`, `compare-files`), so native-image regressions are caught before release rather than at tag time. See [#98](https://github.com/snyk/skemium/pull/98).
+- CI build and native-binary smoke jobs are now skipped on PRs that touch only Markdown files, while Gitleaks and Snyk continue to run. See [#98](https://github.com/snyk/skemium/pull/98).
+- CI now cancels in-flight runs on the same branch / PR when a new commit is pushed, so only the latest commit's checks consume runner minutes (pushes to `main` are exempt and always run to completion). See [#98](https://github.com/snyk/skemium/pull/98).
+
 ## [1.4.1] - 2026-05-14
 
 ### Fixed
