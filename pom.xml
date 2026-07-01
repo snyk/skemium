@@ -59,15 +59,15 @@
       All versions of Jackson libraries have the same versioning, but for some reason `jackson-annotations@X.Y`
       doesn't use the patch version.
     -->
-    <ver.jackson-annotations>2.21</ver.jackson-annotations>
-    <ver.jackson>2.21.3</ver.jackson>
-    <ver.jgit>7.6.0.202603022253-r</ver.jgit>
-    <ver.kafka-connect-avro-converter>7.9.5</ver.kafka-connect-avro-converter>
+    <ver.jackson-annotations>2.22</ver.jackson-annotations>
+    <ver.jackson>2.22.0</ver.jackson>
+    <ver.jgit>7.7.0.202606012155-r</ver.jgit>
+    <ver.kafka-connect-avro-converter>7.9.8</ver.kafka-connect-avro-converter>
     <ver.kafka>3.9.2</ver.kafka>
-    <ver.logback>1.5.32</ver.logback>
+    <ver.logback>1.5.37</ver.logback>
     <ver.lz4-java>1.11.0</ver.lz4-java>
     <ver.picocli>4.7.7</ver.picocli>
-    <ver.postgresql>42.7.11</ver.postgresql>
+    <ver.postgresql>42.7.12</ver.postgresql>
     <ver.slf4j>2.0.18</ver.slf4j>
 
     <!-- Test deps -->
@@ -83,7 +83,7 @@
     <ver.maven-native>0.11.5</ver.maven-native>
     <ver.maven-os-plugin>1.7.1</ver.maven-os-plugin>
     <ver.maven-resources>3.5.0</ver.maven-resources>
-    <ver.maven-surefire>3.5.5</ver.maven-surefire>
+    <ver.maven-surefire>3.5.6</ver.maven-surefire>
   </properties>
 
   <dependencyManagement>
