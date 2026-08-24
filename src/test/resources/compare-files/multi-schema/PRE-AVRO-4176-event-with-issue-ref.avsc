@@ -20,7 +20,7 @@
       "doc": "the issues data, unless it overflowed and was offloaded into the payloadUrl",
       "type": {
         "type": "array",
-        "items": "Issue"
+        "items": { "type": "Issue", "name": "issue" }
       },
       "default": []
     },
