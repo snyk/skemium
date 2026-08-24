@@ -210,6 +210,26 @@ class CompareFilesResultTest {
     }
 
     @Test
+    void shouldFailWithIncludeSchemaWhenReferenceIsInObjectForm() {
+        // Avro 1.12.2 (AVRO-4176) rejects named type references written in object form,
+        // like `{"type": "Issue", "name": "issue"}`: only the bare string form is accepted.
+        final Path issueSchema = multiSchemaDir.resolve("issue-type.avsc");
+        final Path projectIssuesChangedSchema = multiSchemaDir.resolve("PRE-AVRO-4176-event-with-issue-ref.avsc");
+
+        final IOException exception = assertThrows(IOException.class, () -> {
+            CompareFilesResult.build(
+                    projectIssuesChangedSchema,
+                    projectIssuesChangedSchema,
+                    CompatibilityLevel.BACKWARD,
+                    List.of(issueSchema));
+        });
+
+        assertTrue(exception.getMessage().contains("Failed to parse current schema file"));
+        assertTrue(exception.getCause().getMessage().contains(
+                "A schema \"type\" MUST be a primitive type or one of"));
+    }
+
+    @Test
     void shouldWorkWithNullOrEmptyIncludeSchemas() throws IOException {
         final Path schema = validSchemasDir.resolve("person-v1.avsc");
 
