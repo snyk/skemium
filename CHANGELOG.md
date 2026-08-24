@@ -14,11 +14,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **BREAKING:** Bumped Avro from `1.12.1` to `1.12.2`, which tightens schema parsing to match the Avro specification ([AVRO-4176](https://issues.apache.org/jira/browse/AVRO-4176)). A reference to a named type must now be written as a bare string (`"items": "Issue"`); the previously tolerated object form (`"items": { "type": "Issue", "name": "issue" }`) is rejected with `A schema "type" MUST be a primitive type or one of "enum", "fixed", "record", "error", "array" or "map"`. This mostly affects `compare-files --include-schema`, where types are resolved across multiple files. If your `.avsc` files use the object form, rewrite those references to the bare string form.
-- Bumped Java dependencies to their latest patch releases: `commons-codec` `1.22.0` → `1.22.1`, Jackson modules (`jackson-core`, `jackson-databind`, `jackson-datatype-jsr310`, `jackson-dataformat-avro`) `2.21.3` → `2.21.6`, `kafka-connect-avro-converter` `7.9.5` → `7.9.9`, `logback-classic` `1.5.32` → `1.5.38`, `lz4-java` `1.11.0` → `1.11.2`, and `postgresql` `42.7.11` → `42.7.13`.
-- Bumped GitHub Actions to their latest major versions: `actions/checkout` `v6` → `v7`, `dorny/paths-filter` `v3` → `v4`, and `gitleaks/gitleaks-action` `v2` → `v3`.
+- Bumped Java dependencies:
+  - `commons-codec` `1.22.0` → `1.22.1`
+  - `jackson-core`, `jackson-databind`, `jackson-datatype-jsr310`, `jackson-dataformat-avro` `2.21.3` → `2.21.6`
+  - `jgit` `7.6.0.202603022253-r` → `7.7.1.202607240634-r`
+  - `kafka-connect-avro-converter` `7.9.5` → `7.9.9`
+  - `logback-classic` `1.5.32` → `1.5.38`
+  - `lz4-java` `1.11.0` → `1.11.2`
+  - `postgresql` `42.7.11` → `42.7.13`
+- Bumped GitHub Actions:
+  - `actions/checkout` `v6` → `v7`
+  - `dorny/paths-filter` `v3` → `v4`
+  - `gitleaks/gitleaks-action` `v2` → `v3`
 - CI now builds a GraalVM native binary on every PR and runs a smoke test against each subcommand (`generate`, `compare`, `compare-files`), so native-image regressions are caught before release rather than at tag time. See [#98](https://github.com/snyk/skemium/pull/98).
 - CI build and native-binary smoke jobs are now skipped on PRs that touch only Markdown files, while Gitleaks and Snyk continue to run. See [#98](https://github.com/snyk/skemium/pull/98).
 - CI now cancels in-flight runs on the same branch / PR when a new commit is pushed, so only the latest commit's checks consume runner minutes (pushes to `main` are exempt and always run to completion). See [#98](https://github.com/snyk/skemium/pull/98).
+- CircleCI secrets-scanning and security-scan jobs now run with the `prodsec-orb-runtime` context (PRODSEC-10638). See [#116](https://github.com/snyk/skemium/pull/116).
 
 ### Removed
 
