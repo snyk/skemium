@@ -64,7 +64,7 @@
     <ver.jgit>7.7.1.202607240634-r</ver.jgit>
     <ver.kafka-connect-avro-converter>7.9.9</ver.kafka-connect-avro-converter>
     <ver.kafka>3.9.2</ver.kafka>
-    <ver.logback>1.5.38</ver.logback>
+    <ver.logback>1.6.1</ver.logback>
     <ver.lz4-java>1.11.2</ver.lz4-java>
     <ver.picocli>4.7.7</ver.picocli>
     <ver.postgresql>42.7.13</ver.postgresql>
